@@ -1,10 +1,11 @@
 {
   "taxonomyVersion": 2,
-  "updatedAt": "2026-03-04T12:03:36.651Z",
+  "updatedAt": "2026-03-04T12:17:29Z",
   "categories": [
     {
       "id": "cat-backend",
       "name": "Backend Engineering",
+      "slug": "backend-engineering",
       "skills": [
         {
           "id": "skill-python-django",
@@ -42,7 +43,9 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         },
         {
           "id": "skill-node",
@@ -80,13 +83,18 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         }
-      ]
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
     },
     {
       "id": "cat-frontend",
       "name": "Frontend Engineering",
+      "slug": "frontend-engineering",
       "skills": [
         {
           "id": "skill-react",
@@ -124,7 +132,9 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         },
         {
           "id": "skill-nextjs",
@@ -162,13 +172,18 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         }
-      ]
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
     },
     {
       "id": "cat-cloud-devops",
       "name": "Cloud & DevOps",
+      "slug": "cloud-devops",
       "skills": [
         {
           "id": "skill-kubernetes",
@@ -206,7 +221,9 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         },
         {
           "id": "skill-terraform",
@@ -244,13 +261,18 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         }
-      ]
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
     },
     {
       "id": "cat-data",
       "name": "Data Engineering",
+      "slug": "data-engineering",
       "skills": [
         {
           "id": "skill-etl",
@@ -288,9 +310,1199 @@
                 "Translate product goals into scalable technical strategy."
               ]
             }
-          ]
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
         }
-      ]
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-product-strategy",
+      "name": "Product Strategy",
+      "slug": "product-strategy",
+      "skills": [
+        {
+          "id": "skill-product-discovery",
+          "name": "Product Discovery",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in gathering product requirements from stakeholders.",
+                "Document product ideas and feature requests.",
+                "Support product discovery workshops.",
+                "Organize feedback from internal teams.",
+                "Maintain documentation for product concepts."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Conduct discovery sessions with stakeholders.",
+                "Validate product ideas through research.",
+                "Develop problem statements for new initiatives.",
+                "Analyze user feedback to identify opportunities.",
+                "Collaborate with designers and engineers during discovery.",
+                "Prioritize early product hypotheses."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead product discovery initiatives across teams.",
+                "Define opportunity spaces for product innovation.",
+                "Align discovery outcomes with business goals.",
+                "Develop frameworks for validating product ideas.",
+                "Mentor product managers on discovery practices."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define discovery strategy across product lines.",
+                "Ensure discovery aligns with long-term company vision.",
+                "Lead innovation initiatives across teams.",
+                "Mentor product leaders in strategic discovery.",
+                "Establish discovery frameworks for the organization."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-market-opportunity-analysis",
+          "name": "Market Opportunity Analysis",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Collect market research data from available sources.",
+                "Document competitor product features.",
+                "Assist in preparing opportunity summaries.",
+                "Organize research findings for product teams.",
+                "Track trends related to product markets."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Analyze market segments and user needs.",
+                "Compare product capabilities against competitors.",
+                "Develop opportunity briefs for new features.",
+                "Present market findings to product teams.",
+                "Support product strategy planning."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead market opportunity research initiatives.",
+                "Define frameworks for market evaluation.",
+                "Identify emerging product opportunities.",
+                "Influence roadmap planning through research insights.",
+                "Mentor junior product analysts."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define market strategy for product portfolios.",
+                "Guide leadership decisions using market insights.",
+                "Oversee competitive intelligence programs.",
+                "Align product strategy with market opportunities.",
+                "Mentor product strategy leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-roadmap-planning",
+          "name": "Roadmap Planning",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in documenting product roadmap updates.",
+                "Track roadmap tasks across teams.",
+                "Organize roadmap documentation.",
+                "Support roadmap presentation preparation.",
+                "Maintain roadmap tracking tools."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Coordinate roadmap planning sessions.",
+                "Align roadmap priorities with stakeholders.",
+                "Track roadmap progress against timelines.",
+                "Document roadmap decisions and changes.",
+                "Assist product managers in roadmap execution."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead roadmap development for major initiatives.",
+                "Align roadmap priorities with business goals.",
+                "Balance long-term strategy and short-term delivery.",
+                "Facilitate cross-team roadmap planning.",
+                "Mentor product managers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define roadmap governance processes.",
+                "Align portfolio roadmaps with company strategy.",
+                "Oversee roadmap planning across departments.",
+                "Ensure strategic alignment of initiatives.",
+                "Mentor product leadership."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-product-vision-development",
+          "name": "Product Vision Development",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Document product vision statements.",
+                "Assist in preparing product vision presentations.",
+                "Collect feedback from stakeholders.",
+                "Support research activities related to vision planning.",
+                "Maintain product strategy documents."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Develop product vision drafts.",
+                "Align product vision with market needs.",
+                "Collaborate with design and engineering teams.",
+                "Present vision proposals internally.",
+                "Update vision based on product insights."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead product vision definition workshops.",
+                "Align vision with long-term strategy.",
+                "Communicate vision across teams.",
+                "Ensure product direction consistency.",
+                "Mentor product managers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define product vision across portfolios.",
+                "Align leadership on long-term direction.",
+                "Guide innovation initiatives.",
+                "Ensure vision consistency across products.",
+                "Mentor senior product leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-accessibility",
+      "name": "Accessibility",
+      "slug": "accessibility",
+      "skills": [
+        {
+          "id": "skill-web-accessibility-compliance",
+          "name": "Web Accessibility Compliance",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Apply basic accessibility guidelines in UI reviews.",
+                "Identify missing alt text and semantic structure issues.",
+                "Use accessibility testing tools to detect violations.",
+                "Assist in documenting accessibility issues.",
+                "Verify color contrast and keyboard navigation."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Audit web applications for WCAG compliance.",
+                "Collaborate with developers to resolve accessibility issues.",
+                "Implement accessibility improvements in UI components.",
+                "Create accessibility testing checklists.",
+                "Educate team members on accessibility basics."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define accessibility standards across products.",
+                "Lead accessibility audits for large applications.",
+                "Integrate accessibility into development workflows.",
+                "Advocate for inclusive design practices.",
+                "Mentor teams on accessibility compliance."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Establish company-wide accessibility strategy.",
+                "Define accessibility governance and standards.",
+                "Ensure compliance across digital products.",
+                "Drive accessibility culture across teams.",
+                "Mentor accessibility specialists."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-inclusive-design",
+          "name": "Inclusive Design",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Apply inclusive design guidelines.",
+                "Identify basic accessibility issues.",
+                "Assist in accessibility documentation.",
+                "Verify UI accessibility basics.",
+                "Support accessibility reviews."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Conduct accessibility audits.",
+                "Collaborate with teams on accessibility fixes.",
+                "Ensure WCAG compliance.",
+                "Document accessibility improvements.",
+                "Educate teams on accessibility basics."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define inclusive design strategies.",
+                "Lead accessibility initiatives.",
+                "Improve accessibility workflows.",
+                "Mentor designers on accessibility.",
+                "Advocate inclusive practices."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define accessibility governance.",
+                "Ensure compliance across products.",
+                "Lead accessibility transformation initiatives.",
+                "Align accessibility with product vision.",
+                "Mentor accessibility leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-design-systems",
+      "name": "Design Systems",
+      "slug": "design-systems",
+      "skills": [
+        {
+          "id": "skill-component-library-management",
+          "name": "Component Library Management",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Maintain documentation for UI components.",
+                "Update design system assets when requested.",
+                "Assist in organizing component libraries.",
+                "Follow design tokens and style guidelines.",
+                "Support designers in asset preparation."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Develop reusable UI components for design systems.",
+                "Maintain component documentation and usage guidelines.",
+                "Collaborate with developers on implementation.",
+                "Improve consistency across product interfaces.",
+                "Manage version updates for design system assets."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define scalable design system architecture.",
+                "Lead component library standardization.",
+                "Align design systems across multiple products.",
+                "Improve adoption of shared design assets.",
+                "Mentor designers on design system practices."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define design system strategy for the organization.",
+                "Ensure design consistency across all digital products.",
+                "Lead cross-team design system governance.",
+                "Mentor design system leaders.",
+                "Drive long-term design system adoption."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-design-tokens",
+          "name": "Design Tokens",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Apply design tokens in UI layouts.",
+                "Follow token usage guidelines.",
+                "Assist in updating token documentation.",
+                "Verify token usage in components.",
+                "Support token library maintenance."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Maintain token libraries across design tools.",
+                "Collaborate with developers on token implementation.",
+                "Ensure token consistency across products.",
+                "Document token updates.",
+                "Improve token governance."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define scalable token architecture.",
+                "Standardize token usage across platforms.",
+                "Improve design-development collaboration.",
+                "Lead token implementation initiatives.",
+                "Mentor designers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define design token governance strategy.",
+                "Ensure token adoption across teams.",
+                "Align tokens with brand systems.",
+                "Lead multi-platform design systems.",
+                "Mentor design system leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-component-governance",
+          "name": "Component Governance",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Follow component usage guidelines.",
+                "Assist in documenting UI components.",
+                "Track updates to design libraries.",
+                "Organize component documentation.",
+                "Support design system updates."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Maintain component library consistency.",
+                "Collaborate with engineers on implementation.",
+                "Improve component documentation.",
+                "Monitor component adoption.",
+                "Coordinate design system updates."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define scalable component structures.",
+                "Lead design system improvements.",
+                "Ensure cross-product UI consistency.",
+                "Improve collaboration between designers and developers.",
+                "Mentor designers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define design system governance models.",
+                "Ensure design system adoption across teams.",
+                "Lead cross-product design alignment.",
+                "Guide long-term design infrastructure.",
+                "Mentor design system leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-analytics",
+      "name": "Analytics",
+      "slug": "analytics",
+      "skills": [
+        {
+          "id": "skill-product-analytics",
+          "name": "Product Analytics",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Track basic product usage metrics.",
+                "Generate reports on feature adoption.",
+                "Maintain dashboards for product performance.",
+                "Assist in organizing analytics data.",
+                "Document insights from analytics tools."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Analyze user behavior through analytics platforms.",
+                "Identify trends in product usage data.",
+                "Build dashboards for product performance tracking.",
+                "Collaborate with product teams to interpret data.",
+                "Recommend improvements based on analytics insights."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define product analytics strategy.",
+                "Design metrics frameworks for product performance.",
+                "Lead experimentation and data analysis initiatives.",
+                "Guide teams on data-driven decision making.",
+                "Mentor analysts and product managers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define analytics vision for the organization.",
+                "Align analytics strategy with product goals.",
+                "Establish standards for product metrics.",
+                "Lead analytics initiatives across departments.",
+                "Mentor senior analytics leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-experimentation-strategy",
+          "name": "Experimentation Strategy",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in setting up product experiments.",
+                "Document experiment hypotheses.",
+                "Track experiment results.",
+                "Maintain experiment dashboards.",
+                "Support A/B test setup."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Design A/B testing experiments.",
+                "Analyze experiment performance.",
+                "Recommend improvements based on experiment data.",
+                "Collaborate with product teams on experiments.",
+                "Ensure experiment validity."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define experimentation frameworks.",
+                "Lead experimentation initiatives.",
+                "Ensure statistical validity of tests.",
+                "Promote experimentation culture.",
+                "Mentor analysts."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define experimentation strategy across products.",
+                "Align experimentation with product roadmap.",
+                "Lead data-driven product initiatives.",
+                "Mentor analytics leaders.",
+                "Drive experimentation maturity."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-content-strategy",
+      "name": "Content Strategy",
+      "slug": "content-strategy",
+      "skills": [
+        {
+          "id": "skill-technical-content-development",
+          "name": "Technical Content Development",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Draft basic technical documentation.",
+                "Assist in editing user guides.",
+                "Organize documentation content.",
+                "Follow documentation templates.",
+                "Support documentation updates."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Develop structured documentation for products.",
+                "Write tutorials and user guides.",
+                "Collaborate with engineers on technical explanations.",
+                "Maintain documentation repositories.",
+                "Improve documentation readability."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define documentation standards across teams.",
+                "Lead content strategy for technical products.",
+                "Ensure documentation accuracy and clarity.",
+                "Mentor technical writers.",
+                "Improve documentation workflows."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define technical content strategy for the organization.",
+                "Ensure knowledge accessibility across teams.",
+                "Lead large documentation initiatives.",
+                "Align documentation with product strategy.",
+                "Mentor documentation leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-product-documentation-strategy",
+          "name": "Product Documentation Strategy",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Maintain product documentation repositories.",
+                "Assist in updating documentation pages.",
+                "Track documentation changes.",
+                "Format documentation content.",
+                "Organize documentation assets."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Develop structured documentation systems.",
+                "Improve documentation accessibility.",
+                "Collaborate with teams to update documentation.",
+                "Write feature documentation.",
+                "Maintain documentation consistency."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define documentation frameworks.",
+                "Lead documentation strategy initiatives.",
+                "Ensure knowledge sharing across teams.",
+                "Improve documentation processes.",
+                "Mentor documentation contributors."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define organization-wide documentation governance.",
+                "Ensure documentation quality standards.",
+                "Lead knowledge management strategy.",
+                "Align documentation with product strategy.",
+                "Mentor documentation leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-product-operations",
+      "name": "Product Operations",
+      "slug": "product-operations",
+      "skills": [
+        {
+          "id": "skill-backlog-management",
+          "name": "Backlog Management",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Maintain organized product backlog entries.",
+                "Document user stories based on stakeholder input.",
+                "Track backlog items within project management tools.",
+                "Assist in backlog grooming sessions.",
+                "Update ticket details and acceptance criteria."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Prioritize backlog items with product stakeholders.",
+                "Refine user stories with clear acceptance criteria.",
+                "Identify dependencies between backlog items.",
+                "Collaborate with engineering during sprint planning.",
+                "Track backlog health and sprint readiness."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define backlog prioritization frameworks.",
+                "Ensure backlog aligns with product roadmap.",
+                "Lead backlog refinement across teams.",
+                "Improve backlog transparency and documentation.",
+                "Mentor product coordinators."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define backlog management standards across products.",
+                "Align backlog prioritization with company strategy.",
+                "Lead cross-team backlog governance.",
+                "Mentor product operations managers.",
+                "Improve delivery predictability."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-release-coordination",
+          "name": "Release Coordination",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Track release timelines for product updates.",
+                "Assist in preparing release documentation.",
+                "Coordinate communication between teams.",
+                "Maintain release checklists.",
+                "Help verify release readiness."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Coordinate release schedules across teams.",
+                "Ensure release tasks are completed before deployment.",
+                "Communicate release updates to stakeholders.",
+                "Manage release documentation and approvals.",
+                "Monitor post-release issues."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define structured release processes.",
+                "Improve release coordination workflows.",
+                "Lead release planning meetings.",
+                "Identify risks in release cycles.",
+                "Mentor release coordinators."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define company-wide release governance.",
+                "Align release strategy with product roadmap.",
+                "Ensure smooth coordination across departments.",
+                "Lead release operations improvements.",
+                "Mentor product operations leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-stakeholder-communication",
+          "name": "Stakeholder Communication",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Document stakeholder requests and feedback.",
+                "Assist in preparing status updates.",
+                "Maintain communication logs.",
+                "Organize meeting notes and summaries.",
+                "Track follow-up tasks."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Facilitate communication between product teams and stakeholders.",
+                "Prepare stakeholder reports.",
+                "Clarify stakeholder expectations.",
+                "Coordinate feedback sessions.",
+                "Ensure transparency on project progress."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define stakeholder communication frameworks.",
+                "Improve collaboration between departments.",
+                "Lead stakeholder alignment meetings.",
+                "Resolve cross-team communication challenges.",
+                "Mentor junior coordinators."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define company-wide communication standards.",
+                "Ensure strategic alignment with stakeholders.",
+                "Lead executive communication planning.",
+                "Improve transparency across initiatives.",
+                "Mentor product leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-product-documentation",
+          "name": "Product Documentation",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Create and update product documentation.",
+                "Maintain organized documentation repositories.",
+                "Assist in formatting product guides.",
+                "Track documentation updates.",
+                "Support documentation reviews."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Develop structured documentation frameworks.",
+                "Write detailed product feature guides.",
+                "Improve documentation accessibility.",
+                "Collaborate with teams on documentation updates.",
+                "Ensure documentation accuracy."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define documentation standards across products.",
+                "Lead documentation strategy.",
+                "Ensure documentation supports product adoption.",
+                "Improve internal knowledge sharing.",
+                "Mentor documentation contributors."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Establish documentation governance.",
+                "Ensure company-wide documentation quality.",
+                "Lead knowledge management initiatives.",
+                "Align documentation with product strategy.",
+                "Mentor documentation leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-process-improvement",
+          "name": "Process Improvement",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Document existing operational workflows.",
+                "Assist in identifying process inefficiencies.",
+                "Maintain operational documentation.",
+                "Support process improvement initiatives.",
+                "Track improvement tasks."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Analyze operational workflows for optimization.",
+                "Propose improvements to product operations processes.",
+                "Collaborate with teams to implement changes.",
+                "Measure effectiveness of process improvements.",
+                "Document updated workflows."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define operational efficiency frameworks.",
+                "Lead process improvement initiatives.",
+                "Improve cross-team workflows.",
+                "Establish process metrics.",
+                "Mentor operations specialists."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define operational excellence strategy.",
+                "Ensure continuous improvement culture.",
+                "Lead enterprise process transformation.",
+                "Align processes with business goals.",
+                "Mentor operations leadership."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-user-research",
+      "name": "User Research",
+      "slug": "user-research",
+      "skills": [
+        {
+          "id": "skill-usability-testing",
+          "name": "Usability Testing",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in setting up usability testing sessions.",
+                "Observe user testing sessions.",
+                "Document usability findings.",
+                "Organize research artifacts.",
+                "Support test preparation."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Plan usability testing sessions.",
+                "Recruit participants for research.",
+                "Analyze usability testing results.",
+                "Create usability reports.",
+                "Collaborate with designers on improvements."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead usability research initiatives.",
+                "Define usability testing frameworks.",
+                "Improve product usability through research insights.",
+                "Present research insights to stakeholders.",
+                "Mentor research assistants."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define usability research strategy.",
+                "Ensure research informs product design.",
+                "Lead large-scale research initiatives.",
+                "Align research with product strategy.",
+                "Mentor research leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-interview-research",
+          "name": "Interview Research",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in scheduling user interviews.",
+                "Take notes during research sessions.",
+                "Organize interview recordings.",
+                "Document interview observations.",
+                "Help prepare interview guides."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Conduct structured user interviews.",
+                "Analyze qualitative feedback from participants.",
+                "Develop interview scripts.",
+                "Synthesize interview findings.",
+                "Present insights to design teams."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead qualitative research initiatives.",
+                "Define interview methodologies.",
+                "Translate research insights into product opportunities.",
+                "Guide teams on research interpretation.",
+                "Mentor junior researchers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define qualitative research strategies.",
+                "Oversee research programs across teams.",
+                "Align research with strategic decisions.",
+                "Promote research culture in the organization.",
+                "Mentor research leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        },
+        {
+          "id": "skill-survey-design",
+          "name": "Survey Design",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Assist in drafting survey questionnaires.",
+                "Organize survey response data.",
+                "Prepare survey distribution lists.",
+                "Document survey results.",
+                "Support survey reporting."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Design structured survey questionnaires.",
+                "Analyze survey results and patterns.",
+                "Develop reports based on survey findings.",
+                "Collaborate with product teams on insights.",
+                "Recommend product improvements based on survey data."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define survey research methodologies.",
+                "Lead survey initiatives across products.",
+                "Ensure statistical relevance of surveys.",
+                "Translate survey insights into strategy.",
+                "Mentor junior researchers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define organizational survey strategies.",
+                "Lead large research studies.",
+                "Ensure research quality standards.",
+                "Guide research-driven decision making.",
+                "Mentor senior researchers."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-data-insights",
+      "name": "Data Insights",
+      "slug": "data-insights",
+      "skills": [
+        {
+          "id": "skill-product-metrics-analysis",
+          "name": "Product Metrics Analysis",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Collect product usage metrics.",
+                "Maintain analytics dashboards.",
+                "Document metric definitions.",
+                "Prepare basic performance reports.",
+                "Assist analysts with data gathering."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Analyze product usage patterns.",
+                "Develop dashboards for product performance.",
+                "Interpret product engagement data.",
+                "Collaborate with product teams on insights.",
+                "Recommend improvements based on metrics."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define product metrics frameworks.",
+                "Lead product performance analysis.",
+                "Guide teams on interpreting analytics data.",
+                "Promote data-driven decision making.",
+                "Mentor analysts."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define company-wide analytics strategy.",
+                "Align analytics with product goals.",
+                "Lead enterprise analytics initiatives.",
+                "Promote advanced analytics culture.",
+                "Mentor analytics leaders."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
+    },
+    {
+      "id": "cat-community-management",
+      "name": "Community Management",
+      "slug": "community-management",
+      "skills": [
+        {
+          "id": "skill-user-community-engagement",
+          "name": "User Community Engagement",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Monitor community channels.",
+                "Respond to basic user inquiries.",
+                "Document community feedback.",
+                "Organize community discussions.",
+                "Assist in moderating online communities."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Manage community engagement initiatives.",
+                "Organize community events or webinars.",
+                "Analyze user feedback trends.",
+                "Collaborate with product teams on insights.",
+                "Develop engagement strategies."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define community engagement strategies.",
+                "Lead community growth initiatives.",
+                "Improve community support processes.",
+                "Represent user voices in product discussions.",
+                "Mentor community managers."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Define community strategy across products.",
+                "Align community insights with product decisions.",
+                "Lead global community initiatives.",
+                "Promote user advocacy programs.",
+                "Mentor community leadership."
+              ]
+            }
+          ],
+          "createdAt": "2026-03-04T13:14:02.418Z",
+          "updatedAt": "2026-03-04T13:14:02.418Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:14:02.418Z",
+      "updatedAt": "2026-03-04T13:14:02.418Z"
     }
   ]
 }

@@ -11,8 +11,6 @@ import { SharedProfilesPage } from "../features/admin/pages/SharedProfilesPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { CandidateSkillFormPage } from "../features/candidate/pages/CandidateSkillFormPage";
 import { CandidateSkillStartPage } from "../features/candidate/pages/CandidateSkillStartPage";
-import { CandidateHomePage } from "../features/candidate/pages/CandidateHomePage";
-import { CustomerHomePage } from "../features/customer/pages/CustomerHomePage";
 import { DesignSystemPage } from "../features/design/pages/DesignSystemPage";
 import { useAuth } from "../shared/auth/AuthProvider";
 import { defaultPathForRole, ProtectedRoute } from "../shared/auth/ProtectedRoute";
@@ -21,17 +19,14 @@ import { APP_ROUTES } from "../shared/config/routes";
 import { applyTheme, readStoredTheme } from "../shared/hooks/useThemePreference";
 
 function RootRedirect() {
-  const { isReady, isAuthenticated, role, session } = useAuth();
+  const { isReady, isAuthenticated, role } = useAuth();
   if (!isReady) {
     return <div className="grid min-h-screen place-items-center bg-[#f1f5f9] text-sm text-[#667085]">Loading...</div>;
   }
   if (!isAuthenticated || !role) {
     return <Navigate to={APP_ROUTES.login} replace />;
   }
-  if (role === "candidate") {
-    return <Navigate to={APP_ROUTES.login} replace />;
-  }
-  return <Navigate to={defaultPathForRole(role, session?.candidateId)} replace />;
+  return <Navigate to={defaultPathForRole(role)} replace />;
 }
 
 export function App() {
@@ -77,7 +72,7 @@ export function App() {
         }
       />
       <Route
-        path="/admin/candidates/:candidateId"
+        path={APP_ROUTES.admin.candidateProfilePath}
         element={
           <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <CandidateProfilePage />
@@ -109,37 +104,21 @@ export function App() {
         }
       />
       <Route
-        path="/customer/candidates/:candidateId/preview"
+        path={APP_ROUTES.customer.candidatePreviewPath}
         element={
-          <ProtectedRoute allowedRoles={["super_admin", "admin", "client"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <CandidateProfilePage />
           </ProtectedRoute>
         }
       />
       <Route path="/shared/:shareToken" element={<CandidateProfilePage />} />
       <Route
-        path="/candidate/:candidateId/start"
+        path={APP_ROUTES.candidate.startPath}
         element={<CandidateSkillStartPage />}
       />
       <Route
-        path="/candidate/:candidateId/skills"
+        path={APP_ROUTES.candidate.skillsPath}
         element={<CandidateSkillFormPage />}
-      />
-      <Route
-        path={APP_ROUTES.customer.home}
-        element={
-          <ProtectedRoute allowedRoles={["client"]}>
-            <CustomerHomePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={APP_ROUTES.candidate.home}
-        element={
-          <ProtectedRoute allowedRoles={["candidate"]}>
-            <CandidateHomePage />
-          </ProtectedRoute>
-        }
       />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -7,19 +7,21 @@ export const APP_ROUTES = {
     account: "/admin/account",
     settings: "/admin/settings",
     candidates: "/admin/candidates",
+    candidateProfilePath: "/admin/candidates/:candidateId",
     candidateProfile: (candidateId: string) => `/admin/candidates/${encodeURIComponent(candidateId)}`,
     skills: "/admin/skills",
     sharedProfiles: "/admin/shared-profiles",
     auditLogs: "/admin/audit-logs"
   },
   customer: {
-    home: "/customer",
+    candidatePreviewPath: "/customer/candidates/:candidateId/preview",
     candidatePreview: (candidateId: string) => `/customer/candidates/${encodeURIComponent(candidateId)}/preview`
   },
   candidate: {
-    home: "/candidate",
-    start: (candidateId: string) => `/candidate/${encodeURIComponent(candidateId)}/start`,
-    skills: (candidateId: string) => `/candidate/${encodeURIComponent(candidateId)}/skills`
+    startPath: "/candidate/:token/start",
+    skillsPath: "/candidate/:token/skills",
+    start: (token: string) => `/candidate/${encodeURIComponent(token)}/start`,
+    skills: (token: string) => `/candidate/${encodeURIComponent(token)}/skills`
   }
 } as const;
 

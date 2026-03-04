@@ -4,6 +4,7 @@ import { CSRF_COOKIE } from "../security/cookies";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const EXEMPT_PATHS = new Set(["/api/auth/login", "/api/auth/refresh", "/api/auth/reset-password"]);
+const EXEMPT_PREFIXES = ["/api/public-candidate/"];
 
 function safeTokenMatch(left: string, right: string) {
   const leftBuffer = Buffer.from(left);
@@ -19,6 +20,11 @@ export function requireCsrf(req: Request, res: Response, next: NextFunction) {
   }
 
   if (EXEMPT_PATHS.has(req.path)) {
+    next();
+    return;
+  }
+
+  if (EXEMPT_PREFIXES.some((prefix) => req.path.startsWith(prefix))) {
     next();
     return;
   }

@@ -109,6 +109,7 @@ const STORAGE_KEY = "chromedia.candidates.v2";
 const LEGACY_STORAGE_KEY = "chromedia.candidates.v1";
 const API_URL = "/api/candidates";
 const QUERY_API_URL = "/api/candidates/query";
+const CANDIDATE_LINKS_API_URL = "/api/candidate-links";
 
 export type CandidateListQuery = {
   page?: number;
@@ -501,6 +502,50 @@ export async function fetchPublicCandidateByShareToken(token: string) {
   } catch {
     return null;
   }
+}
+
+export async function fetchPublicCandidateByToken(token: string) {
+  if (!hasWindow()) return null;
+  try {
+    const response = await fetch(`/api/public-candidate/${encodeURIComponent(token)}`);
+    if (!response.ok) return null;
+    return normalizeCandidate((await response.json()) as CandidateRecord);
+  } catch {
+    return null;
+  }
+}
+
+export async function updatePublicCandidateSkills(
+  token: string,
+  skillSelections: CandidateProfileSkillSelection[]
+): Promise<CandidateRecord> {
+  const response = await fetch(`/api/public-candidate/${encodeURIComponent(token)}/skills`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skillSelections })
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? "Failed to save candidate skills");
+  }
+  return normalizeCandidate((await response.json()) as CandidateRecord);
+}
+
+export async function createCandidateInviteLink(candidateId: string, expirationDate?: string) {
+  const response = await fetchWithAuth(CANDIDATE_LINKS_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ candidateId, expirationDate })
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? "Failed to create candidate invite link");
+  }
+  return (await response.json()) as {
+    candidateId: string;
+    token: string;
+    expiresAt: string;
+  };
 }
 
 export async function addCandidate(input: NewCandidateInput): Promise<CandidateRecord> {

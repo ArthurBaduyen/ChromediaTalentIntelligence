@@ -4,10 +4,10 @@ import { APP_ROUTES } from "../config/routes";
 import { defaultPathForRole } from "../auth/ProtectedRoute";
 
 export function NotFoundPage() {
-  const { isAuthenticated, role, session } = useAuth();
+  const { isAuthenticated, role } = useAuth();
   const backPath =
     isAuthenticated && role
-      ? defaultPathForRole(role, session?.candidateId)
+      ? defaultPathForRole(role)
       : APP_ROUTES.login;
 
   return (

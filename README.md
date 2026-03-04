@@ -52,8 +52,8 @@ Primary goals:
 
 ### Candidate
 
-- Start page (`/candidate/:candidateId/start`) with personalized greeting.
-- Skill assessment flow (`/candidate/:candidateId/skills`):
+- Start page (`/candidate/:token/start`) with personalized greeting.
+- Skill assessment flow (`/candidate/:token/skills`):
   - Category-based navigation.
   - Autosave behavior with reliability improvements.
   - Resume where left off.
@@ -191,11 +191,10 @@ Demo accounts currently shown in UI:
 
 - `superadmin@chromedia.local / password123` (Super Admin)
 - `admin@chromedia.local / password123` (Admin)
-- `client@chromedia.local / password123` (Client)
 
 Notes:
 
-- Candidate self-assessment flow is link-driven and does not require candidate login in the active UX.
+- Candidate and client/customer flows are link-driven and do not require login.
 - Auth now uses short-lived access tokens and rotated refresh tokens in secure HttpOnly cookies.
 - CSRF protection is enforced for state-changing API calls using `x-csrf-token`.
 - Frontend stores only user profile metadata in local storage; session tokens are not exposed to JS.
@@ -213,11 +212,10 @@ Notes:
 | `/admin/audit-logs` | Super Admin | Audit logs |
 | `/admin/account` | Super Admin/Admin | Account page |
 | `/admin/settings` | Super Admin/Admin | Settings page (`UI` + `User` tab, `User` for Super Admin only) |
-| `/customer` | Client | Customer home |
-| `/customer/candidates/:candidateId/preview` | Super Admin/Admin/Client | Candidate preview view |
+| `/customer/candidates/:candidateId/preview` | Super Admin/Admin | Candidate preview view |
 | `/shared/:shareToken` | Public | Shared profile entry point |
-| `/candidate/:candidateId/start` | Public | Candidate start page |
-| `/candidate/:candidateId/skills` | Public | Candidate skills flow |
+| `/candidate/:token/start` | Public | Candidate start page |
+| `/candidate/:token/skills` | Public | Candidate skills flow |
 
 ## 9) Local API Reference
 
@@ -239,10 +237,18 @@ The app uses the Express backend (`backend/src/server.ts`) as the API server.
 |---|---|---|---|
 | GET | `/api/candidates/query` | Admin | Paginated/sorted/filtered candidates |
 | GET | `/api/candidates` | Admin | Full list |
-| GET | `/api/candidates/:id` | Admin/Candidate own | Candidate detail |
+| GET | `/api/candidates/:id` | Admin | Candidate detail |
 | POST | `/api/candidates` | Admin | Create candidate |
-| PUT | `/api/candidates/:id` | Admin/Candidate own | Update candidate |
+| PUT | `/api/candidates/:id` | Admin | Update candidate |
 | DELETE | `/api/candidates/:id` | Admin | Delete candidate |
+| POST | `/api/candidate-links` | Admin | Generate candidate invite link token |
+
+### Candidate Public Links
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/api/public-candidate/:token` | Public token | Resolve candidate by invite token |
+| PUT | `/api/public-candidate/:token/skills` | Public token | Update candidate skill selections only |
 
 ### Skills
 
@@ -385,6 +391,18 @@ Script location: `scripts/migrate-skill-selection-capability-ids.mjs`.
 
 - Cause: dev server stopped.
 - Fix: run `npm run dev` again.
+
+### Frontend starts on wrong port (CORS/login issues)
+
+- Cause: port `5173` is already occupied, so the frontend cannot start on the expected origin.
+- Fix: free the port, then restart dev servers:
+
+```bash
+lsof -ti :5173 | xargs kill -9
+npm run dev
+```
+
+- If you change `CORS_ORIGIN`/`CORS_ORIGINS`, restart the backend so env changes are applied.
 
 ### Logged in but blocked
 

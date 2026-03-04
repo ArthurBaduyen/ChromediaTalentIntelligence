@@ -84,6 +84,7 @@ model Candidate {
   updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
   account             CandidateAccount?
   sharedProfiles      SharedProfile[]
+  inviteLinks         CandidateInviteLink[]
   authSessions       AuthSession[]
   skillSelections     CandidateSkillSelection[]
 
@@ -184,6 +185,26 @@ model SharedProfile {
   @@index([sharedAt])
   @@index([deletedAt])
   @@map("share_links")
+}
+
+model CandidateInviteLink {
+  id             String    @id @default(uuid()) @db.Uuid
+  tokenHash      String    @unique @map("token_hash")
+  candidateId    String    @map("candidate_id") @db.Uuid
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz(6)
+  accessCount    Int       @default(0) @map("access_count")
+  lastAccessedAt DateTime? @map("last_accessed_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  candidate      Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@index([deletedAt])
+  @@map("candidate_invite_links")
 }
 
 model AuditLog {

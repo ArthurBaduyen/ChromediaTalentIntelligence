@@ -15,9 +15,10 @@ import { EmptyState, QueryErrorBanner, TableSkeleton } from "../../../shared/com
 import { ModalShell } from "../../../shared/components/ModalShell";
 import {
   addCandidate,
-  CandidateRecord,
-  CandidateListQuery,
-  deleteCandidate,
+    CandidateRecord,
+    CandidateListQuery,
+    createCandidateInviteLink,
+    deleteCandidate,
   fetchCandidatesPage,
   slugifyName,
   updateCandidate
@@ -291,7 +292,18 @@ export function CandidatesPage() {
               }}
               onCandidate={() => {
                 setActiveActionMenu(null);
-                window.open(APP_ROUTES.candidate.start(row.id), "_blank", "noopener,noreferrer");
+                void (async () => {
+                  try {
+                    const invite = await createCandidateInviteLink(row.id);
+                    window.open(APP_ROUTES.candidate.start(invite.token), "_blank", "noopener,noreferrer");
+                  } catch (error) {
+                    showToast({
+                      variant: "error",
+                      title: "Failed to generate candidate link",
+                      message: error instanceof Error ? error.message : undefined
+                    });
+                  }
+                })();
               }}
               onCopyLink={async () => {
                 setActiveActionMenu(null);
@@ -306,7 +318,7 @@ export function CandidatesPage() {
         }
       }
     ],
-    [activeActionMenu, sortBy, sortDir]
+    [activeActionMenu, showToast, sortBy, sortDir]
   );
 
   return (

@@ -4,8 +4,8 @@ import {
   CandidateProfileSkillSelection,
   CandidateProfileSkillSelectionItem,
   CandidateRecord,
-  fetchCandidateById,
-  updateCandidate
+  fetchPublicCandidateByToken,
+  updatePublicCandidateSkills
 } from "../../admin/data/candidatesDb";
 import { SkillsState, fetchSkillsState } from "../../admin/data/skillsDb";
 import { Button } from "../../../shared/components/Button";
@@ -151,7 +151,7 @@ function buildSelectionsFromDraft(
 }
 
 export function CandidateSkillFormPage() {
-  const { candidateId = "candidate" } = useParams();
+  const { token = "" } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -181,7 +181,7 @@ export function CandidateSkillFormPage() {
 
   useEffect(() => {
     let mounted = true;
-    fetchCandidateById(candidateId).then((record) => {
+    fetchPublicCandidateByToken(token).then((record) => {
       if (mounted) setCandidate(record);
     });
     fetchSkillsState().then((state) => {
@@ -190,7 +190,7 @@ export function CandidateSkillFormPage() {
     return () => {
       mounted = false;
     };
-  }, [candidateId]);
+  }, [token]);
 
   useEffect(() => {
     const source = candidate?.profile?.skillSelections ?? [];
@@ -269,7 +269,7 @@ export function CandidateSkillFormPage() {
     () => selectionCategories.filter((category) => (draftSelections[category.id]?.length ?? 0) > 0).length,
     [draftSelections, selectionCategories]
   );
-  const stepStorageKey = `chromedia.candidate.skill-step.v1:${candidate?.id ?? candidateId}`;
+  const stepStorageKey = `chromedia.candidate.skill-step.v1:${candidate?.id ?? token}`;
 
   const pushBotMessage = (params: { key: string; headline: string; subline: string; cooldownMs?: number }) => {
     const now = Date.now();
@@ -393,13 +393,12 @@ export function CandidateSkillFormPage() {
         let lastError: unknown = null;
         for (let attempt = 0; attempt < 3; attempt += 1) {
           try {
-            const freshest = (await fetchCandidateById(candidate.id)) ?? candidate;
             const liveDraftSelections = latestDraftSelectionsRef.current;
             const liveSelectionCategories = latestSelectionCategoriesRef.current;
             const mergedSelectionsMap = new Map(
               buildSelectionsFromDraft(liveSelectionCategories, liveDraftSelections).map((selection) => [selection.categoryId, selection])
             );
-            const untouchedExistingSelections = (freshest.profile?.skillSelections ?? []).filter(
+            const untouchedExistingSelections = (candidate.profile?.skillSelections ?? []).filter(
               (selection) => !mergedSelectionsMap.has(selection.categoryId)
             );
             const mergedUpdatedSelections = liveSelectionCategories
@@ -407,29 +406,7 @@ export function CandidateSkillFormPage() {
               .filter((selection): selection is CandidateProfileSkillSelection => Boolean(selection));
             const mergedSelections = [...untouchedExistingSelections, ...mergedUpdatedSelections];
 
-            const updated = await updateCandidate(freshest.id, {
-              name: freshest.name,
-              role: freshest.role,
-              expectedSalary: freshest.expectedSalary,
-              available: freshest.available,
-              technologies: freshest.technologies,
-              status: freshest.status,
-              contact: freshest.contact,
-              location: freshest.location,
-              compensation: freshest.compensation,
-              employment: freshest.employment,
-              profile: {
-                about: freshest.profile?.about ?? "",
-                experience: freshest.profile?.experience ?? "",
-                education: freshest.profile?.education ?? [],
-                projects: freshest.profile?.projects ?? [],
-                skillSelections: mergedSelections,
-                videoTitle: freshest.profile?.videoTitle ?? "",
-                videoUrl: freshest.profile?.videoUrl ?? "",
-                coderbyteScore: freshest.profile?.coderbyteScore ?? "",
-                coderbyteLink: freshest.profile?.coderbyteLink ?? ""
-              }
-            });
+            const updated = await updatePublicCandidateSkills(token, mergedSelections);
             setCandidate(updated);
             lastSavedSelectionHashRef.current = JSON.stringify(mergedSelections);
             setHasUnsavedChanges(false);
@@ -544,8 +521,7 @@ export function CandidateSkillFormPage() {
   };
 
   const copyStartLink = async () => {
-    const targetId = candidate?.id ?? candidateId;
-    const url = `${window.location.origin}${APP_ROUTES.candidate.start(targetId)}`;
+    const url = `${window.location.origin}${APP_ROUTES.candidate.start(token)}`;
     try {
       await navigator.clipboard.writeText(url);
       showToast({ variant: "success", title: "Link copied" });
@@ -572,29 +548,7 @@ export function CandidateSkillFormPage() {
     ];
 
     try {
-      const updated = await updateCandidate(candidate.id, {
-        name: candidate.name,
-        role: candidate.role,
-        expectedSalary: candidate.expectedSalary,
-        available: candidate.available,
-        technologies: candidate.technologies,
-        status: candidate.status,
-        contact: candidate.contact,
-        location: candidate.location,
-        compensation: candidate.compensation,
-        employment: candidate.employment,
-        profile: {
-          about: candidate.profile?.about ?? "",
-          experience: candidate.profile?.experience ?? "",
-          education: candidate.profile?.education ?? [],
-          projects: candidate.profile?.projects ?? [],
-          skillSelections: nextSelections,
-          videoTitle: candidate.profile?.videoTitle ?? "",
-          videoUrl: candidate.profile?.videoUrl ?? "",
-          coderbyteScore: candidate.profile?.coderbyteScore ?? "",
-          coderbyteLink: candidate.profile?.coderbyteLink ?? ""
-        }
-      });
+      const updated = await updatePublicCandidateSkills(token, nextSelections);
       setFocusedCategoryIds((previous) => {
         if (!previous || previous.length === 0) {
           return newCategoryIds;
@@ -780,7 +734,7 @@ export function CandidateSkillFormPage() {
                 <Button
                   variant="secondary"
                   className="h-10 px-5 text-sm"
-                  onClick={() => navigate(APP_ROUTES.candidate.start(candidate?.id ?? candidateId))}
+                  onClick={() => navigate(APP_ROUTES.candidate.start(token))}
                 >
                   Back to start
                 </Button>
@@ -830,7 +784,7 @@ export function CandidateSkillFormPage() {
               <Button
                 variant="secondary"
                 className="ml-auto h-10 px-5 text-sm"
-                onClick={() => navigate(APP_ROUTES.candidate.start(candidate?.id ?? candidateId))}
+                onClick={() => navigate(APP_ROUTES.candidate.start(token))}
               >
                 Done for now
               </Button>

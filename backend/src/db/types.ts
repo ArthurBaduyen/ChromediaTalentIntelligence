@@ -99,6 +99,15 @@ export type SharedProfileRecord = {
   lastAccessedAt?: string;
 };
 
+export type CandidateInviteLinkRecord = {
+  token: string;
+  candidateId: string;
+  expiresAt: string;
+  revokedAt?: string;
+  accessCount?: number;
+  lastAccessedAt?: string;
+};
+
 export type AuthSessionRecord = {
   token: string;
   userId?: string;

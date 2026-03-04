@@ -1,4 +1,4 @@
-export type AppRole = "super_admin" | "admin" | "candidate" | "client";
+export type AppRole = "super_admin" | "admin";
 
 export type Permission =
   | "dashboard:view"
@@ -78,20 +78,6 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "public-share:read",
     "settings:view",
     "settings:update"
-  ],
-  candidate: [
-    "candidate:read",
-    "candidate:update",
-    "candidate:skill-evaluate",
-    "skill:list",
-    "skill:read",
-    "public-share:read"
-  ],
-  client: [
-    "candidate:read",
-    "skill:list",
-    "skill:read",
-    "public-share:read"
   ]
 };
 

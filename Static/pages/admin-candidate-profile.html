@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <meta name='viewport' content='width=device-width,initial-scale=1'/>
+  <link rel='stylesheet' href='../styles.css'/>
+  <title>Admin Candidate Profile</title>
+</head>
+<body>
+<div class='container profile-shell'>
+  <img src='https://www.figma.com/api/mcp/asset/18a2c059-6d4d-42f8-a8b2-1256d07938c5' alt='Chromedia' style='max-width:300px;display:block;margin:20px auto 12px'>
+  <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'>
+    <div style='display:flex;align-items:center;gap:10px'>
+      <img src='https://www.figma.com/api/mcp/asset/230ccce5-50d8-487a-82e3-1c15832044bc' alt='Client' style='width:38px;height:38px;border-radius:50%'>
+      <div><div style='font-size:30px;font-weight:700'>Client Name</div><div class='subtle' style='font-size:24px'>Email Address</div></div>
+    </div>
+    <button class='btn primary'>Share to client</button>
+  </div>
+
+  <div class='surface'>
+    <div class='profile-head'>
+      <div style='display:flex;align-items:center;gap:12px'>
+        <span style='font-size:20px'>←</span>
+        <img src='https://www.figma.com/api/mcp/asset/1de7cd0b-8d22-4417-9f74-e989c00c5071' alt='Candidate' style='width:52px;height:52px;border-radius:50%'>
+        <div>
+          <h2 style='margin:0;font-size:38px'>Alex Morgan</h2>
+          <p class='subtle' style='font-size:28px'>Sr Frontend Developer · Cebu, Philippines</p>
+        </div>
+      </div>
+      <div>
+        <h2 style='margin:0;font-size:42px'>$1,800.00 / Month</h2>
+        <p class='subtle' style='font-size:26px'>Availability: Yes</p>
+        <p class='subtle' style='font-style:italic;font-size:22px'>Rate guaranteed until [date].</p>
+        <div class='actions'><button class='btn primary'>Email Ryan</button><button class='btn primary'>Schedule a meeting</button></div>
+      </div>
+    </div>
+    <hr style='border:none;border-top:1px solid #e2e8f0'>
+
+    <div class='profile-body'>
+      <nav class='left-menu'>
+        <a class='active'>About</a>
+        <a>Experience</a>
+        <a>Coderbyte</a>
+        <a>Education</a>
+        <a>Projects</a>
+        <a>Design Platform Revamp</a>
+        <a>Design Talent Insights Dashboard</a>
+        <a>Design Skills Validation Workflow</a>
+        <a>Skills</a>
+        <a>Frontend Engineering</a>
+        <a>QA & Test Automation</a>
+        <a>Mobile</a>
+      </nav>
+
+      <section>
+        <div class='section'><h4>About ✎</h4><p>Alex is a senior frontend engineer with 9+ years of experience building high-performance SaaS products and design-system-driven web apps. He specializes in React architecture, advanced state modeling, and performance optimization for enterprise-scale interfaces.</p></div>
+        <div class='section'><h4>Working as Sr Frontend Developer ✎</h4><p>Led frontend roadmap and architecture decisions across multiple product squads. Drove component library adoption, set engineering quality standards, and coached junior-to-mid engineers in test strategy and delivery practices.</p></div>
+        <div class='section'><h4>Video Introduction +</h4><div class='video-placeholder'>▶</div><p class='subtle'>No video added yet. Add a video title and link so clients can quickly get to know the candidate.</p></div>
+        <div class='section'><h4>Coderbyte Results ✎</h4><div class='card' style='background:#e8f4fb'><p><strong>Score:</strong> 890 / 1000</p><p><strong>Link:</strong> https://coderbyte.com/profile/alex-morgan</p></div></div>
+        <div class='section'><h4>Project Experience +</h4>
+          <article class='card' style='border:2px solid #eaeaea;background:#f8f8f8'>
+            <h3 style='font-size:24px;text-transform:none;color:#0f172a;margin:0'>Chromedia Talent Intelligence <span class='subtle'>✎ 🗑</span></h3>
+            <p class='subtle'>Lead Frontend Engineer · Jan 2025 – Present</p>
+            <p>Led implementation of Admin and Candidate workflows, role-based views, modal-driven profile editing, share-link lifecycle, and analytics dashboard. Improved performance by reducing repeated normalization and unnecessary re-fetch loops.</p>
+            <p><strong>Responsibilities</strong></p>
+            <ul>
+              <li>Architected reusable UI components and page templates.</li>
+              <li>Implemented form validation, date handling, and profile persistence.</li>
+              <li>Built skills taxonomy editor with hierarchical controls.</li>
+            </ul>
+            <div class='pill-row'><span class='pill'>React</span><span class='pill'>TypeScript</span><span class='pill'>Tailwind</span><span class='pill'>Vite</span></div>
+          </article>
+        </div>
+        <div class='section'><h4>Education ✎</h4><p>2015 · BS Computer Science · University of San Carlos</p></div>
+        <div class='section'><h4>Skills ✎</h4>
+          <div class='card'><h3 style='text-transform:none;color:#0f172a;font-size:20px'>Frontend Engineering <span class='tag success'>Senior</span></h3>
+            <p>React + TypeScript</p>
+            <ul>
+              <li><input type='checkbox' checked> Build reusable typed components from Figma.</li>
+              <li><input type='checkbox' checked> Implement controlled forms and validation flows.</li>
+              <li><input type='checkbox' checked> Handle local state and data fetching with clean patterns.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>

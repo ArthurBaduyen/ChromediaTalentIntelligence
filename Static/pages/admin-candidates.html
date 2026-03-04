@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <meta name='viewport' content='width=device-width,initial-scale=1'/>
+  <link rel='stylesheet' href='../styles.css'/>
+  <title>Admin Candidates</title>
+</head>
+<body>
+<div class='app-shell'>
+  <aside class='sidebar'>
+    <div class='logo'>⟳</div>
+    <nav class='nav-group'>
+      <a class='nav-item'>Dashboard</a>
+      <a class='nav-item active'>Candidates</a>
+      <a class='nav-item'>Skills</a>
+      <a class='nav-item'>Shared Profiles</a>
+      <a class='nav-item'>Audit Logs</a>
+    </nav>
+    <nav class='nav-bottom'><a class='nav-item'>Account</a><a class='nav-item'>Settings</a></nav>
+  </aside>
+  <main class='main'>
+    <div class='surface' style='padding:16px'>
+      <div class='page-header'>
+        <div>
+          <h1 class='page-title'>Candidates</h1>
+          <p class='subtle'>Manage candidate records, profile links, and status.</p>
+        </div>
+        <div class='actions'>
+          <button class='btn ghost'>🔎</button>
+          <button class='btn ghost'>☰</button>
+          <button class='btn primary'>+ Add Candidate</button>
+        </div>
+      </div>
+
+      <div class='table-wrap'>
+        <table>
+          <thead>
+            <tr>
+              <th>Candidate Name</th>
+              <th>Role</th>
+              <th>Technologies</th>
+              <th>Expected Salary</th>
+              <th>Available</th>
+              <th style='width:120px'>Status</th>
+              <th style='width:56px'></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Alex Morgan</td>
+              <td>Sr Frontend Developer</td>
+              <td>React, TypeScript, Next.js</td>
+              <td>$1,800.00 / Month</td>
+              <td>Yes</td>
+              <td><span class='tag success'>Active</span></td>
+              <td style='text-align:center'>⋯</td>
+            </tr>
+            <tr>
+              <td>Jordan Lee</td>
+              <td>Sr UI/UX Designer</td>
+              <td>Figma, Design Systems, Prototyping</td>
+              <td>$90 / Day</td>
+              <td>in 12 days</td>
+              <td><span class='tag warning'>Pending</span></td>
+              <td style='text-align:center'>⋯</td>
+            </tr>
+            <tr>
+              <td>Riley Johnson</td>
+              <td>Junior Backend Developer</td>
+              <td>Node.js, PostgreSQL, Docker</td>
+              <td>$12 / Hour</td>
+              <td>in 27 days</td>
+              <td><span class='tag success'>Active</span></td>
+              <td style='text-align:center'>⋯</td>
+            </tr>
+            <tr>
+              <td>Jamie Taylor</td>
+              <td>Junior UI/UX Designer</td>
+              <td>Figma, Adobe XD, Notion</td>
+              <td>$90 / Day</td>
+              <td>in 20 days</td>
+              <td><span class='tag danger'>Inactive</span></td>
+              <td style='text-align:center'>⋯</td>
+            </tr>
+            <tr><td>Avery Chen</td><td>Jr UI/UX Designer</td><td>Figma, Usability Testing</td><td>$12 / Hour</td><td>Yes</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Casey Smith</td><td>Sr Backend Developer</td><td>Go, Redis, Kafka</td><td>$1,800.00 / Month</td><td>Yes</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Morgan Patel</td><td>Product Designer</td><td>Design Systems, Research</td><td>$1,800.00 / Month</td><td>Yes</td><td><span class='tag warning'>Pending</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Eli Navarro</td><td>QA Automation Engineer</td><td>Cypress, Playwright, CI</td><td>$30 / Hour</td><td>in 2 weeks</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Bianca Torres</td><td>Data Engineer</td><td>Python, dbt, Snowflake</td><td>$2,200 / Month</td><td>Yes</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Noah Cruz</td><td>Mobile Developer</td><td>React Native, Kotlin</td><td>$1,700 / Month</td><td>in 1 week</td><td><span class='tag warning'>Pending</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Sam Reyes</td><td>DevOps Engineer</td><td>AWS, Terraform, Kubernetes</td><td>$2,500 / Month</td><td>Yes</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+            <tr><td>Tina Lim</td><td>Frontend Engineer</td><td>React, Vue, Tailwind</td><td>$1,600 / Month</td><td>in 5 days</td><td><span class='tag success'>Active</span></td><td style='text-align:center'>⋯</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class='pagination-prod'>
+        <p class='pagination-count'>Showing 1-12 of 62</p>
+        <nav class='pagination-nav' aria-label='Pagination'>
+          <button class='pagination-arrow'>‹ Prev</button>
+          <button class='pagination-page active'>1</button>
+          <button class='pagination-page'>2</button>
+          <button class='pagination-page'>3</button>
+          <button class='pagination-page'>4</button>
+          <button class='pagination-page'>5</button>
+          <button class='pagination-arrow'>Next ›</button>
+        </nav>
+        <div></div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

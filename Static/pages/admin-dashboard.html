@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><link rel='stylesheet' href='../styles.css'/><title>Admin Dashboard</title></head><body>
+<div class='app-shell'>
+  <aside class='sidebar'>
+    <div class='logo'>⟳</div>
+    <nav class='nav-group'>
+      <a class='nav-item active'>Dashboard</a><a class='nav-item'>Candidates</a><a class='nav-item'>Skills</a><a class='nav-item'>Shared Profiles</a><a class='nav-item'>Audit Logs</a>
+    </nav>
+    <nav class='nav-bottom'><a class='nav-item'>Account</a><a class='nav-item'>Settings</a></nav>
+  </aside>
+  <main class='main'>
+    <div class='surface' style='padding:16px'>
+      <div class='page-header'><div><h1 class='page-title'>Dashboard</h1><p class='subtle'>Operational analytics from candidates, skills, and sharing activity</p></div></div>
+      <section class='grid grid-4'>
+        <article class='card'><h3>Candidates</h3><p class='metric'>62</p><p class='subtle'>+8 vs previous week</p></article>
+        <article class='card'><h3>Skills Library</h3><p class='metric'>114</p><p class='subtle'>9 categories · 642 capabilities</p></article>
+        <article class='card'><h3>Shared Profiles</h3><p class='metric'>39</p><p class='subtle'>27 active · 12 expiring soon</p></article>
+        <article class='card'><h3>Completion Rate</h3><p class='metric'>68%</p><p class='subtle'>+6 vs previous week</p></article>
+      </section>
+      <section class='grid grid-2' style='margin-top:12px'>
+        <article class='card'><h3 style='margin-bottom:10px'>Candidate Funnel</h3><div class='funnel'><div class='funnel-row' style='width:100%'><span>Invited</span><span>62</span></div><div class='funnel-row' style='width:82%'><span>Started</span><span>51</span></div><div class='funnel-row' style='width:64%'><span>In Progress</span><span>40</span></div><div class='funnel-row' style='width:51%'><span>Completed</span><span>32</span></div></div></article>
+        <article class='card'><h3 style='margin-bottom:10px'>Shared Profile Performance</h3><div class='chart'><div class='bar' style='left:8%;height:72px'></div><div class='bar' style='left:23%;height:92px'></div><div class='bar' style='left:38%;height:120px'></div><div class='bar' style='left:53%;height:110px'></div><div class='bar' style='left:68%;height:146px'></div><div class='bar' style='left:83%;height:165px'></div><svg class='line' viewBox='0 0 100 100' preserveAspectRatio='none'><polyline fill='none' stroke='#1595d4' stroke-width='2.5' points='8,72 23,64 38,58 53,54 68,44 83,31'/></svg></div></article>
+      </section>
+      <section class='grid grid-2' style='margin-top:12px'>
+        <article class='card'><h3 style='margin-bottom:10px'>Alerts</h3><p>Candidates with empty skills: <strong>11</strong></p><p>Stale profiles (14+ days): <strong>7</strong></p><p>Missing contact info: <strong>3</strong></p></article>
+        <article class='card'><h3 style='margin-bottom:10px'>Recent Activity</h3><p class='subtle'>Candidate updated: Alex Morgan</p><p class='subtle'>Skill category added: Data Engineering</p><p class='subtle'>Shared link revoked: Jamie Taylor</p></article>
+      </section>
+    </div>
+  </main>
+</div>
+</body></html>

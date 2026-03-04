@@ -1,0 +1,17 @@
+[
+  {
+    "id": "audit_mmbvgrpq_gdz6nl5",
+    "createdAt": "2026-03-04T10:06:39.950Z",
+    "action": "auth.login",
+    "entityType": "auth",
+    "entityId": "admin@chromedia.local",
+    "actorRole": "admin",
+    "actorEmail": "admin@chromedia.local",
+    "beforeState": null,
+    "afterState": {
+      "sessionToken": "sess_mmbvgrpn_lgvhvj1lplr",
+      "role": "admin",
+      "candidateId": null
+    }
+  }
+]

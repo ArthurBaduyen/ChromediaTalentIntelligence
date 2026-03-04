@@ -1,0 +1,132 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core tokens */
+    --ds-core-space-1: 0.25rem;
+    --ds-core-space-2: 0.5rem;
+    --ds-core-space-3: 0.75rem;
+    --ds-core-space-4: 1rem;
+    --ds-core-space-5: 1.25rem;
+    --ds-core-space-6: 1.5rem;
+    --ds-core-space-8: 2rem;
+    --ds-core-space-10: 2.5rem;
+    --ds-core-space-12: 3rem;
+
+    --ds-core-radius-sm: 0.375rem;
+    --ds-core-radius-md: 0.5rem;
+    --ds-core-radius-lg: 0.625rem;
+    --ds-core-radius-xl: 0.75rem;
+    --ds-core-radius-pill: 999px;
+
+    --ds-core-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --ds-core-shadow-md: 0 6px 14px rgba(15, 23, 42, 0.12);
+    --ds-core-shadow-lg: 0 10px 20px rgba(148, 163, 184, 0.2);
+
+    --ds-core-type-size-xs: 0.75rem;
+    --ds-core-type-size-sm: 0.875rem;
+    --ds-core-type-size-base: 1rem;
+    --ds-core-type-size-lg: 1.125rem;
+    --ds-core-type-size-xl: 1.25rem;
+    --ds-core-type-size-2xl: 1.5rem;
+
+    --ds-core-type-line-xs: 1rem;
+    --ds-core-type-line-sm: 1.25rem;
+    --ds-core-type-line-base: 1.5rem;
+    --ds-core-type-line-lg: 1.75rem;
+    --ds-core-type-line-xl: 1.75rem;
+    --ds-core-type-line-2xl: 2rem;
+
+    /* Semantic tokens - light */
+    --ds-semantic-bg-canvas: 241 245 249;
+    --ds-semantic-bg-surface: 255 255 255;
+    --ds-semantic-bg-muted: 248 250 252;
+    --ds-semantic-bg-overlay: 15 23 42;
+
+    --ds-semantic-text-primary: 15 23 42;
+    --ds-semantic-text-secondary: 52 64 84;
+    --ds-semantic-text-muted: 102 112 133;
+    --ds-semantic-text-inverse: 255 255 255;
+    --ds-semantic-text-danger: 180 35 24;
+
+    --ds-semantic-border-default: 208 213 221;
+    --ds-semantic-border-subtle: 234 236 240;
+    --ds-semantic-border-focus: 21 149 212;
+    --ds-semantic-border-danger: 241 8 12;
+
+    --ds-semantic-action-primary: 21 149 212;
+    --ds-semantic-action-primary-hover: 15 125 179;
+    --ds-semantic-action-secondary: 232 244 251;
+    --ds-semantic-action-secondary-hover: 216 236 248;
+    --ds-semantic-action-ghost: 255 255 255;
+    --ds-semantic-action-ghost-hover: 248 250 252;
+    --ds-semantic-action-danger: 239 68 68;
+    --ds-semantic-action-danger-hover: 220 38 38;
+
+    --ds-semantic-status-success: 2 122 72;
+    --ds-semantic-status-warning: 181 71 8;
+    --ds-semantic-status-danger: 180 35 24;
+
+    /* Backward-compatible aliases used throughout existing app */
+    --color-brand: rgb(var(--ds-semantic-action-primary));
+    --color-brand-strong: rgb(var(--ds-semantic-action-primary-hover));
+    --color-brand-soft: rgb(var(--ds-semantic-action-secondary));
+    --color-border: rgb(var(--ds-semantic-border-default));
+    --color-border-soft: rgb(var(--ds-semantic-border-subtle));
+    --color-text: rgb(var(--ds-semantic-text-secondary));
+    --color-text-strong: rgb(var(--ds-semantic-text-primary));
+    --color-danger: rgb(var(--ds-semantic-border-danger));
+    --color-bg-app: rgb(var(--ds-semantic-bg-canvas));
+    --radius-md: var(--ds-core-radius-md);
+  }
+
+  [data-theme="dark"] {
+    --ds-semantic-bg-canvas: 15 23 42;
+    --ds-semantic-bg-surface: 30 41 59;
+    --ds-semantic-bg-muted: 51 65 85;
+    --ds-semantic-bg-overlay: 0 0 0;
+
+    --ds-semantic-text-primary: 241 245 249;
+    --ds-semantic-text-secondary: 226 232 240;
+    --ds-semantic-text-muted: 148 163 184;
+    --ds-semantic-text-inverse: 15 23 42;
+    --ds-semantic-text-danger: 252 165 165;
+
+    --ds-semantic-border-default: 100 116 139;
+    --ds-semantic-border-subtle: 71 85 105;
+    --ds-semantic-border-focus: 56 189 248;
+    --ds-semantic-border-danger: 239 68 68;
+
+    --ds-semantic-action-primary: 56 189 248;
+    --ds-semantic-action-primary-hover: 14 165 233;
+    --ds-semantic-action-secondary: 30 58 138;
+    --ds-semantic-action-secondary-hover: 37 99 235;
+    --ds-semantic-action-ghost: 30 41 59;
+    --ds-semantic-action-ghost-hover: 51 65 85;
+    --ds-semantic-action-danger: 239 68 68;
+    --ds-semantic-action-danger-hover: 220 38 38;
+
+    --ds-semantic-status-success: 74 222 128;
+    --ds-semantic-status-warning: 251 191 36;
+    --ds-semantic-status-danger: 248 113 113;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: rgb(var(--ds-semantic-bg-canvas));
+    color: rgb(var(--ds-semantic-text-primary));
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}

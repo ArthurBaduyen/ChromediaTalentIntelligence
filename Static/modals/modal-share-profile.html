@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link rel='stylesheet' href='../styles.css'>
+  <title>Modal - Share Profile</title>
+</head>
+<body>
+<div class='modal-page'>
+  <div class='modal'>
+    <h2>Share Profile</h2>
+    <div style='display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #eaecf0;margin-bottom:10px'>
+      <img src='https://www.figma.com/api/mcp/asset/1de7cd0b-8d22-4417-9f74-e989c00c5071' alt='Candidate' style='width:40px;height:40px;border-radius:50%'>
+      <div><strong>Alex Morgan</strong><div class='subtle'>Sr Frontend Developer</div></div>
+    </div>
+    <label>Rate to Client</label>
+    <select>
+      <option>$80 - Daily</option>
+      <option>$90 - Daily (Billable)</option>
+      <option>$1000 - Monthly</option>
+      <option>Custom</option>
+    </select>
+
+    <div class='form-grid' style='margin-top:10px'>
+      <div>
+        <label>Link Expiration</label>
+        <input class='input' type='date'>
+      </div>
+      <div></div>
+      <div><label>Name</label><input class='input' placeholder='Recipient name'></div>
+      <div><label>Email</label><input class='input' placeholder='name@company.com'></div>
+    </div>
+
+    <div class='footer-actions'>
+      <button class='btn'>Cancel</button>
+      <button class='btn primary'>Share</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

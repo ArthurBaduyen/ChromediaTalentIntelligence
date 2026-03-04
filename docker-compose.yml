@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chromedia_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chromedia
+      POSTGRES_PASSWORD: chromedia
+      POSTGRES_DB: chromedia_talent_intelligence
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chromedia -d chromedia_talent_intelligence"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - chromedia_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  chromedia_postgres_data:
+    name: chromedia_postgres_data

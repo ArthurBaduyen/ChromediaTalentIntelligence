@@ -1,0 +1,46 @@
+{
+  "name": "chromedia-talent-intelligence",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc -b --pretty false",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio --port 5555 --browser none",
+    "db:import": "tsx scripts/import-json-to-postgres.ts",
+    "db:verify": "tsx scripts/verify-import-counts.ts",
+    "migrate:skill-selections": "node scripts/migrate-skill-selection-capability-ids.mjs",
+    "test:api": "node scripts/test-api-integration.mjs",
+    "test:domain": "node scripts/test-candidate-profile-domain.mjs",
+    "test": "npm run test:api",
+    "test:share-links": "node scripts/test-share-link-lifecycle.mjs",
+    "test:all": "npm run test:domain && npm run test:api && npm run test:share-links"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
+    "dotenv": "^17.3.1",
+    "pg": "^8.19.0",
+    "prisma": "^7.4.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

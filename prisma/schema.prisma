@@ -1,0 +1,256 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AppRole {
+  admin
+  candidate
+  client
+
+  @@map("app_role")
+}
+
+enum CandidateStatus {
+  Active
+  Inactive
+  Pending
+}
+
+enum AuditEntityType {
+  candidate
+  skills
+  shared_profile
+  auth
+}
+
+enum AuditActorRole {
+  admin
+  candidate
+  client
+  system
+}
+
+model User {
+  id           String            @id @default(uuid()) @db.Uuid
+  email        String            @unique
+  passwordHash String            @map("password_hash")
+  role         AppRole
+  isActive     Boolean           @default(true) @map("is_active")
+  lastLoginAt  DateTime?         @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  sessions     AuthSession[]
+  candidate    CandidateAccount?
+  client       ClientAccount?
+  auditLogs    AuditLog[]
+  shareLinks   SharedProfile[]   @relation("ShareLinksByUser")
+
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Candidate {
+  id                  String                @id @default(uuid()) @db.Uuid
+  legacyId            String                @unique @map("legacy_id")
+  fullName            String                @map("full_name")
+  roleTitle           String                @map("role_title")
+  expectedSalaryLabel String?               @map("expected_salary_label")
+  status              CandidateStatus       @default(Pending)
+  availableLabel      String?               @map("available_label")
+  technologiesLabel   String?               @map("technologies_label")
+  contactEmail        String?               @map("contact_email")
+  contactPhone        String?               @map("contact_phone")
+  city                String?
+  region              String?
+  country             String?
+  profileJson         Json                  @default("{}") @map("profile_json")
+  contactJson         Json?                 @map("contact_json")
+  locationJson        Json?                 @map("location_json")
+  compensationJson    Json?                 @map("compensation_json")
+  employmentJson      Json?                 @map("employment_json")
+  schemaVersion       Int?                  @map("schema_version")
+  deletedAt           DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  account             CandidateAccount?
+  sharedProfiles      SharedProfile[]
+  authSessions       AuthSession[]
+  skillSelections     CandidateSkillSelection[]
+
+  @@index([legacyId])
+  @@index([fullName])
+  @@index([contactEmail])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("candidates")
+}
+
+model CandidateAccount {
+  userId      String    @id @map("user_id") @db.Uuid
+  candidateId String    @unique @map("candidate_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("candidate_accounts")
+}
+
+model ClientAccount {
+  userId      String   @id @map("user_id") @db.Uuid
+  companyName String?  @map("company_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("client_accounts")
+}
+
+model AuthSession {
+  id            String    @id @default(uuid()) @db.Uuid
+  tokenHash     String    @unique @map("refresh_token_hash")
+  role          AppRole
+  email         String
+  name          String
+  userAgent     String?   @map("user_agent")
+  ipAddress     String?   @map("ip_address")
+  userId        String?   @map("user_id") @db.Uuid
+  candidateId   String?   @map("candidate_id") @db.Uuid
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidate     Candidate? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@index([deletedAt])
+  @@map("user_sessions")
+}
+
+model SharedProfile {
+  id              String    @id @default(uuid()) @db.Uuid
+  legacyId        String    @unique @map("legacy_id")
+  tokenHash       String    @unique @map("token_hash")
+  candidateId     String?   @map("candidate_id") @db.Uuid
+  candidateLegacyId String  @map("candidate_legacy_id")
+  candidateName   String    @map("candidate_name")
+  candidateRole   String    @map("candidate_role")
+  sharedWithName  String    @map("shared_with_name")
+  sharedWithEmail String    @map("shared_with_email")
+  rateLabel       String?   @map("rate_label")
+  expirationDate  DateTime  @map("expires_at") @db.Timestamptz(6)
+  sharedAt        DateTime  @map("shared_at") @db.Timestamptz(6)
+  revokedAt       DateTime? @map("revoked_at") @db.Timestamptz(6)
+  accessCount     Int       @default(0) @map("access_count")
+  lastAccessedAt  DateTime? @map("last_accessed_at") @db.Timestamptz(6)
+  sharedByUserId  String?   @map("shared_by_user_id") @db.Uuid
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  candidate       Candidate? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  sharedByUser    User?     @relation("ShareLinksByUser", fields: [sharedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([candidateId])
+  @@index([expirationDate])
+  @@index([revokedAt])
+  @@index([sharedAt])
+  @@index([deletedAt])
+  @@map("share_links")
+}
+
+model AuditLog {
+  id          String         @id @default(uuid()) @db.Uuid
+  legacyId    String?        @unique @map("legacy_id")
+  actorUserId String?        @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  AuditEntityType @map("entity_type")
+  entityId    String         @map("entity_id")
+  actorRole   AuditActorRole @map("actor_role")
+  actorEmail  String         @map("actor_email")
+  beforeState Json?          @map("before_state")
+  afterState  Json?          @map("after_state")
+  metadata    Json           @default("{}")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  actorUser   User?          @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("audit_logs")
+}
+
+model SkillTaxonomy {
+  id              Int      @id
+  taxonomyVersion Int?     @map("taxonomy_version")
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("skill_taxonomy")
+}
+
+model SkillCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  legacyId    String   @unique @map("legacy_id")
+  name        String
+  slug        String?
+  description String?
+  displayOrder Int     @default(0) @map("display_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  skills      Skill[]
+
+  @@index([name])
+  @@index([deletedAt])
+  @@map("skill_categories")
+}
+
+model Skill {
+  id           String   @id @default(uuid()) @db.Uuid
+  legacyId     String   @unique @map("legacy_id")
+  categoryId   String   @map("category_id") @db.Uuid
+  name         String
+  code         String?
+  description  String?
+  capabilities Json
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  category     SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([name])
+  @@index([deletedAt])
+  @@map("skills")
+}
+
+model CandidateSkillSelection {
+  id               String   @id @default(uuid()) @db.Uuid
+  candidateId      String   @map("candidate_id") @db.Uuid
+  categoryLegacyId String   @map("category_legacy_id")
+  skillLegacyId    String   @map("skill_legacy_id")
+  level            String
+  capabilityId     String   @map("capability_id")
+  text             String?
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, categoryLegacyId, skillLegacyId, capabilityId])
+  @@index([candidateId])
+  @@index([skillLegacyId])
+  @@map("candidate_skill_selections")
+}

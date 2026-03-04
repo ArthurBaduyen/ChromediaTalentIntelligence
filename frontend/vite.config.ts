@@ -11,6 +11,8 @@ export default defineConfig({
   root: frontendRoot,
   plugins: [react()],
   server: {
+    port: 5173,
+    strictPort: true,
     proxy: {
       "/api": {
         target: backendUrl,

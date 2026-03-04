@@ -1,23 +1,34 @@
 import "dotenv/config";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { prisma } from "../src/db/prismaClient";
-import type { AuditLogRecord, AuthSessionRecord, CandidateRecord, SharedProfileRecord, SkillsState } from "../src/db/types";
+import { prisma } from "../backend/src/db/prismaClient";
+import type { AuditLogRecord, AuthSessionRecord, CandidateRecord, SharedProfileRecord, SkillsState } from "../backend/src/db/types";
 
 async function readJson<T>(filename: string) {
-  const fullPath = path.join(process.cwd(), "db", filename);
-  const raw = await fs.readFile(fullPath, "utf8");
-  return JSON.parse(raw) as T;
+  const fullPath = path.join(process.cwd(), "backend", "db", filename);
+  try {
+    const raw = await fs.readFile(fullPath, "utf8");
+    return JSON.parse(raw) as T;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      console.warn(`Missing legacy file: ${fullPath} (using empty value)`);
+      return ([] as unknown) as T;
+    }
+    throw error;
+  }
 }
 
 async function main() {
-  const [skills, candidates, sharedProfiles, authSessions, auditLogs] = await Promise.all([
-    readJson<SkillsState>("skills.json"),
+  const [skillsRaw, candidates, sharedProfiles, authSessions, auditLogs] = await Promise.all([
+    readJson<SkillsState | null>("skills.json"),
     readJson<CandidateRecord[]>("candidates.json"),
     readJson<SharedProfileRecord[]>("sharedProfiles.json"),
     readJson<AuthSessionRecord[]>("authSessions.json"),
     readJson<AuditLogRecord[]>("auditLogs.json")
   ]);
+  const skills: SkillsState = skillsRaw && Array.isArray((skillsRaw as SkillsState).categories)
+    ? (skillsRaw as SkillsState)
+    : { categories: [] };
 
   const [dbCandidates, dbCategories, dbSkills, dbShared, dbSessions, dbAudit] = await Promise.all([
     prisma.candidate.count({ where: { deletedAt: null } }),

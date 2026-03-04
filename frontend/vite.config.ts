@@ -3,8 +3,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { repositories } from "./src/db/repositories";
-import { checkDatabaseHealth } from "./src/db/health";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { repositories } from "../backend/src/db/repositories";
+import { checkDatabaseHealth } from "../backend/src/db/health";
 import type {
   AuditLogRecord,
   CandidateRecord,
@@ -12,7 +14,9 @@ import type {
   DemoUser,
   AuthSessionRecord,
   SkillsState
-} from "./src/db/types";
+} from "../backend/src/db/types";
+
+const frontendRoot = path.dirname(fileURLToPath(import.meta.url));
 
 type PaginatedResponse<T> = {
   items: T[];
@@ -389,6 +393,7 @@ function validateSharedProfilePayload(payload: Record<string, unknown>, options:
 }
 
 export default defineConfig({
+  root: frontendRoot,
   plugins: [
     react(),
     {

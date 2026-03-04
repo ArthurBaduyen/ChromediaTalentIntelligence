@@ -19,11 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const bootstrap = async () => {
-      if (!session?.sessionToken) {
-        setIsReady(true);
-        return;
-      }
-      const resolved = await apiGetSession(session.sessionToken);
+      const resolved = await apiGetSession();
       if (!resolved) {
         setSession(null);
         persistAuthSession(null);
@@ -51,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await apiLogout(session?.sessionToken);
+    await apiLogout();
     setSession(null);
     persistAuthSession(null);
     setIsReady(true);

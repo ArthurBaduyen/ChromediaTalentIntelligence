@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminShell } from "../layout/AdminShell";
-import { CandidateRecord, fetchCandidates, getCandidates } from "../data/candidatesDb";
-import { fetchSkillsState, getSkillsState, SkillsState } from "../data/skillsDb";
-import { fetchSharedProfiles, getSharedProfiles, SharedProfileRecord } from "../data/sharedProfilesDb";
+import { CandidateRecord, fetchCandidates } from "../data/candidatesDb";
+import { fetchSkillsState, SkillsState } from "../data/skillsDb";
+import { fetchSharedProfiles, SharedProfileRecord } from "../data/sharedProfilesDb";
 import { useQueryResource } from "../../../shared/hooks/useQueryResource";
 import { DataTable } from "../../../shared/components/Table";
 import { SortHeaderLabel } from "../../../shared/components/SortHeaderLabel";
@@ -356,15 +356,15 @@ function SharedPerformanceChart({ points }: { points: SharedPerformancePoint[] }
 export function DashboardPage() {
   const navigate = useNavigate();
   const candidatesResource = useQueryResource<CandidateRecord[]>({
-    initialData: getCandidates(),
+    initialData: [],
     fetcher: fetchCandidates
   });
   const skillsResource = useQueryResource<SkillsState>({
-    initialData: getSkillsState(),
+    initialData: { categories: [] },
     fetcher: fetchSkillsState
   });
   const sharedProfilesResource = useQueryResource<SharedProfileRecord[]>({
-    initialData: getSharedProfiles(),
+    initialData: [],
     fetcher: fetchSharedProfiles
   });
 

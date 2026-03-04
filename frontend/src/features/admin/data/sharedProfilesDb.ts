@@ -126,22 +126,14 @@ function persist(records: SharedProfileRecord[]) {
 }
 
 export function getSharedProfiles() {
-  if (!hasWindow()) return [];
-  return safeParse(window.localStorage.getItem(STORAGE_KEY)) ?? [];
+  return [];
 }
 
 export async function fetchSharedProfiles() {
-  if (!hasWindow()) return [];
-  try {
-    const response = await fetchWithAuth(API_URL);
-    if (!response.ok) throw new Error(`Failed GET ${API_URL}`);
-    const records = (await response.json()) as SharedProfileRecord[];
-    const normalized = records.map((item) => normalizeRecord(item));
-    persist(normalized);
-    return normalized;
-  } catch {
-    return getSharedProfiles();
-  }
+  const response = await fetchWithAuth(API_URL);
+  if (!response.ok) throw new Error(`Failed GET ${API_URL}`);
+  const records = (await response.json()) as SharedProfileRecord[];
+  return records.map((item) => normalizeRecord(item));
 }
 
 export async function fetchSharedProfilesPage(query: SharedProfilesQuery): Promise<PaginatedResult<SharedProfileRecord>> {
@@ -155,96 +147,52 @@ export async function fetchSharedProfilesPage(query: SharedProfilesQuery): Promi
   const response = await fetchWithAuth(`${QUERY_API_URL}?${params.toString()}`);
   if (!response.ok) throw new Error(`Failed GET ${QUERY_API_URL}`);
   const payload = (await response.json()) as PaginatedResult<SharedProfileRecord>;
-  const items = payload.items.map((item) => normalizeRecord(item));
-  persist(items);
-  return { ...payload, items };
+  return { ...payload, items: payload.items.map((item) => normalizeRecord(item)) };
 }
 
 export async function addSharedProfile(input: NewSharedProfileInput) {
   const next = normalizeRecord(input);
-  try {
-    const response = await fetchWithAuth(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next)
-    });
-    if (!response.ok) throw new Error(`Failed POST ${API_URL}`);
-    const created = normalizeRecord((await response.json()) as SharedProfileRecord);
-    const existing = getSharedProfiles().filter((item) => item.id !== created.id);
-    persist([created, ...existing]);
-    return created;
-  } catch {
-    const existing = getSharedProfiles();
-    persist([next, ...existing]);
-    return next;
-  }
+  const response = await fetchWithAuth(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(next)
+  });
+  if (!response.ok) throw new Error(`Failed POST ${API_URL}`);
+  return normalizeRecord((await response.json()) as SharedProfileRecord);
 }
 
 export async function updateSharedProfile(id: string, input: Omit<SharedProfileRecord, "id">) {
   const next = normalizeRecord({ ...input, id });
-  try {
-    const response = await fetchWithAuth(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next)
-    });
-    if (!response.ok) throw new Error(`Failed PUT ${API_URL}/${id}`);
-    const updated = normalizeRecord((await response.json()) as SharedProfileRecord);
-    const existing = getSharedProfiles().filter((item) => item.id !== updated.id);
-    persist([updated, ...existing]);
-    return updated;
-  } catch {
-    const existing = getSharedProfiles().filter((item) => item.id !== id);
-    persist([next, ...existing]);
-    return next;
-  }
+  const response = await fetchWithAuth(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(next)
+  });
+  if (!response.ok) throw new Error(`Failed PUT ${API_URL}/${id}`);
+  return normalizeRecord((await response.json()) as SharedProfileRecord);
 }
 
 export async function revokeSharedProfile(id: string) {
-  try {
-    const response = await fetchWithAuth(`${API_URL}/${id}/revoke`, { method: "POST" });
-    if (!response.ok) throw new Error(`Failed POST ${API_URL}/${id}/revoke`);
-    const revoked = normalizeRecord((await response.json()) as SharedProfileRecord);
-    const existing = getSharedProfiles().filter((item) => item.id !== revoked.id);
-    persist([revoked, ...existing]);
-    return revoked;
-  } catch {
-    const existing = getSharedProfiles();
-    const target = existing.find((item) => item.id === id);
-    if (!target) throw new Error("Shared profile not found");
-    const revoked = normalizeRecord({ ...target, revokedAt: nowIso(), id });
-    const next = [revoked, ...existing.filter((item) => item.id !== id)];
-    persist(next);
-    return revoked;
-  }
+  const response = await fetchWithAuth(`${API_URL}/${id}/revoke`, { method: "POST" });
+  if (!response.ok) throw new Error(`Failed POST ${API_URL}/${id}/revoke`);
+  return normalizeRecord((await response.json()) as SharedProfileRecord);
 }
 
 export async function deleteSharedProfile(id: string) {
-  try {
-    const response = await fetchWithAuth(`${API_URL}/${id}`, { method: "DELETE" });
-    if (!response.ok) throw new Error(`Failed DELETE ${API_URL}/${id}`);
-  } catch {
-    // local fallback below
-  }
-  const next = getSharedProfiles().filter((item) => item.id !== id);
-  persist(next);
-  return next;
+  const response = await fetchWithAuth(`${API_URL}/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error(`Failed DELETE ${API_URL}/${id}`);
+  return [];
 }
 
 export function getSharedProfileByToken(token: string) {
-  return getSharedProfiles().find((item) => item.shareToken === token) ?? null;
+  void token;
+  return null;
 }
 
 export async function fetchSharedProfileByToken(token: string) {
-  if (!hasWindow()) return null;
-  try {
-    const response = await fetchWithAuth(`/api/public-shares/${encodeURIComponent(token)}`);
-    if (!response.ok) return null;
-    return normalizeRecord((await response.json()) as SharedProfileRecord);
-  } catch {
-    const records = await fetchSharedProfiles();
-    return records.find((item) => item.shareToken === token) ?? null;
-  }
+  const response = await fetchWithAuth(`/api/public-shares/${encodeURIComponent(token)}`);
+  if (!response.ok) return null;
+  return normalizeRecord((await response.json()) as SharedProfileRecord);
 }
 
 export function getSharedProfilePublicUrl(recordOrToken: Pick<SharedProfileRecord, "shareToken"> | string) {

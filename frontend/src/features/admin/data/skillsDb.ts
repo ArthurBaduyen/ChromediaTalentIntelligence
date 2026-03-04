@@ -393,37 +393,17 @@ function migrateLegacyStorage() {
 }
 
 export function getSkillsState(): SkillsState {
-  if (!hasWindow()) return normalizeSkillsState(seedSkillsState);
-  const existing = safeParseState(window.localStorage.getItem(STORAGE_KEY));
-  if (existing) {
-    return existing;
-  }
-
-  const migrated = migrateLegacyStorage();
-  if (migrated) {
-    return migrated;
-  }
-
-  const seeded = normalizeSkillsState(seedSkillsState);
-  persist(seeded);
-  return seeded;
+  return { categories: [] };
 }
 
 export function saveSkillsState(state: SkillsState) {
-  persist(normalizeSkillsState(state));
+  void state;
 }
 
 export async function fetchSkillsState() {
-  if (!hasWindow()) return normalizeSkillsState(seedSkillsState);
-  try {
-    const response = await fetchWithAuth(API_URL);
-    if (!response.ok) throw new Error(`Failed GET ${API_URL}`);
-    const state = normalizeSkillsState((await response.json()) as SkillsState);
-    persist(state);
-    return state;
-  } catch {
-    return getSkillsState();
-  }
+  const response = await fetchWithAuth(API_URL);
+  if (!response.ok) throw new Error(`Failed GET ${API_URL}`);
+  return normalizeSkillsState((await response.json()) as SkillsState);
 }
 
 export async function updateSkillsState(state: SkillsState) {
@@ -433,20 +413,16 @@ export async function updateSkillsState(state: SkillsState) {
     throw new Error(validation.errors[0] ?? "Invalid skills state");
   }
 
-  try {
-    const response = await fetchWithAuth(API_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalized)
-    });
-    if (!response.ok) throw new Error(`Failed PUT ${API_URL}`);
-    const updated = normalizeSkillsState((await response.json()) as SkillsState);
-    persist(updated);
-    return updated;
-  } catch {
-    persist(normalized);
-    return normalized;
+  const response = await fetchWithAuth(API_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(normalized)
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? `Failed PUT ${API_URL}`);
   }
+  return normalizeSkillsState((await response.json()) as SkillsState);
 }
 
 export async function fetchSkillCategoriesPage(query: {

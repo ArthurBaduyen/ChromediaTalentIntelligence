@@ -1,7 +1,9 @@
-import { createHash } from "node:crypto";
-import { getDbEnv } from "./env";
+import bcrypt from "bcryptjs";
 
-export function hashPassword(value: string): string {
-  const pepper = getDbEnv().TOKEN_HASH_PEPPER;
-  return createHash("sha256").update(`pwd:${pepper}:${value}`).digest("hex");
+export async function hashPassword(value: string): Promise<string> {
+  return bcrypt.hash(value, 12);
+}
+
+export async function verifyPassword(value: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(value, hash);
 }

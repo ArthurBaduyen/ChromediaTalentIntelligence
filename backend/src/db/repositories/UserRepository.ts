@@ -1,6 +1,6 @@
 import { AppRole } from "@prisma/client";
 import { prisma } from "../prismaClient";
-import { hashPassword } from "../utils/passwordHash";
+import { hashPassword, verifyPassword } from "../utils/passwordHash";
 import type { DemoUser } from "../types";
 
 function toRole(role: DemoUser["role"]): AppRole {
@@ -12,7 +12,7 @@ function toRole(role: DemoUser["role"]): AppRole {
 export class UserRepository {
   async upsertDemoUser(user: DemoUser) {
     const role = toRole(user.role);
-    const passwordHash = hashPassword(user.password);
+    const passwordHash = await hashPassword(user.password);
 
     const dbUser = await prisma.user.upsert({
       where: { email: user.email.toLowerCase() },
@@ -53,5 +53,20 @@ export class UserRepository {
     return prisma.user.findFirst({
       where: { email: email.toLowerCase(), deletedAt: null, isActive: true }
     });
+  }
+
+  async verifyUserPassword(email: string, password: string) {
+    const user = await this.findByEmail(email);
+    if (!user) return null;
+    const ok = await verifyPassword(password, user.passwordHash);
+    return ok ? user : null;
+  }
+
+  async getCandidateLegacyIdForUser(userId: string) {
+    const account = await prisma.candidateAccount.findUnique({
+      where: { userId },
+      include: { candidate: { select: { legacyId: true } } }
+    });
+    return account?.candidate.legacyId;
   }
 }

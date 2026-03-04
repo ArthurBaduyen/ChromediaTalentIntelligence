@@ -1,0 +1,296 @@
+{
+  "taxonomyVersion": 2,
+  "updatedAt": "2026-03-04T12:03:36.651Z",
+  "categories": [
+    {
+      "id": "cat-backend",
+      "name": "Backend Engineering",
+      "skills": [
+        {
+          "id": "skill-python-django",
+          "name": "Python / Django",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Core Python syntax, OOP basics and package management.",
+                "Django project setup, models, views and templates.",
+                "Basic ORM queries and CRUD endpoints."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "DRF serializers, viewsets and authentication patterns.",
+                "Celery/Redis async jobs and scheduled tasks.",
+                "Query optimization and test coverage improvements."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Multi-tenant architecture and service boundaries.",
+                "High-scale PostgreSQL tuning and performance profiling.",
+                "Production hardening, observability and reliability design."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "skill-node",
+          "name": "Node.js API Development",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Build REST endpoints with Express or Fastify.",
+                "Validate payloads and enforce API contracts.",
+                "Implement authentication and role-based authorization."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Design modular services and repository patterns.",
+                "Optimize database access and query execution plans.",
+                "Implement job queues and retry-safe background processing."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Lead API versioning and backward compatibility strategy.",
+                "Design event-driven integrations and eventual consistency.",
+                "Define observability and SLOs for mission-critical APIs."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-frontend",
+      "name": "Frontend Engineering",
+      "skills": [
+        {
+          "id": "skill-react",
+          "name": "React + TypeScript",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Build reusable typed components from Figma.",
+                "Implement controlled forms and validation flows.",
+                "Handle local state and data fetching with clean patterns."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Optimize rendering with memoization and state boundaries.",
+                "Implement accessibility for keyboard and screen readers.",
+                "Set up RTL tests for interactive components."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define feature architecture for large React products.",
+                "Lead design system governance and component APIs.",
+                "Own performance budgets and production monitoring."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "skill-nextjs",
+          "name": "Next.js",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Create pages and layouts with App Router.",
+                "Implement API routes and server-side validation.",
+                "Use Tailwind for responsive UI implementation."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Apply caching and revalidation strategies per route.",
+                "Split client and server components intentionally.",
+                "Configure image optimization and SEO metadata."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Design SSR/ISR strategy for scale and reliability.",
+                "Drive observability for user and route performance.",
+                "Architect multi-tenant or white-label frontend patterns."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-cloud-devops",
+      "name": "Cloud & DevOps",
+      "skills": [
+        {
+          "id": "skill-kubernetes",
+          "name": "Kubernetes",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Understand pod lifecycle and deployment basics.",
+                "Manage config maps, secrets and health probes.",
+                "Debug common rollout and service connectivity issues."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Configure autoscaling and resource limits from metrics.",
+                "Implement canary/rolling deployments in CI/CD.",
+                "Set up centralized logging and actionable alerts."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Design multi-cluster strategy and disaster recovery.",
+                "Optimize platform reliability and cloud cost at scale.",
+                "Define workload, cluster and supply-chain security controls."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "skill-terraform",
+          "name": "Terraform",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Provision cloud resources with reusable modules.",
+                "Manage environment-specific variable files safely.",
+                "Use remote state and locking for team collaboration."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Structure IaC repositories by domain and ownership.",
+                "Integrate policy checks and validation in CI.",
+                "Handle safe module version upgrades and migrations."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Define organization-wide guardrails and platform standards.",
+                "Lead multi-account/multi-region provisioning strategy.",
+                "Balance governance, velocity and operational reliability."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-data",
+      "name": "Data Engineering",
+      "skills": [
+        {
+          "id": "skill-etl",
+          "name": "ETL Pipelines",
+          "capabilities": [
+            {
+              "level": "Entry Level",
+              "entries": [
+                "Build basic extraction and transformation jobs.",
+                "Validate data quality with simple checks.",
+                "Schedule and monitor recurring data workflows."
+              ]
+            },
+            {
+              "level": "Mid Level",
+              "entries": [
+                "Handle schema drift and backward compatibility.",
+                "Optimize pipeline reliability with retries and idempotency.",
+                "Implement incremental loads and partition strategies."
+              ]
+            },
+            {
+              "level": "Senior Level",
+              "entries": [
+                "Design event-driven and batch hybrid architectures.",
+                "Govern lineage, ownership and data contract strategy.",
+                "Lead cost/performance optimization for large data platforms."
+              ]
+            },
+            {
+              "level": "Senior Lead Level",
+              "entries": [
+                "Set standards and mentor engineers across teams.",
+                "Own delivery quality and risk management for the domain.",
+                "Translate product goals into scalable technical strategy."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

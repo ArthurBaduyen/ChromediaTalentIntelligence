@@ -240,14 +240,22 @@ export function SkillsPage() {
   }, [debouncedSearch, selectedCategoryId, categorySortBy, skillsSortBy, sortDir]);
 
   const persistState = async (nextState: SkillsState) => {
+    const previousState = skillsState;
     setSkillsState(nextState);
     try {
-      await updateSkillsState(nextState);
-    } catch {
+      const persisted = await updateSkillsState(nextState);
+      setSkillsState(persisted);
+      await Promise.all([
+        skillsResource.refetch(),
+        categoryRowsResource.refetch(),
+        skillsRowsResource.refetch()
+      ]);
+    } catch (error) {
+      setSkillsState(previousState);
       showToast({
-        variant: "info",
-        title: "Saved locally",
-        message: "Server sync failed, but your changes are kept in local storage."
+        variant: "error",
+        title: "Failed to save skills",
+        message: error instanceof Error ? error.message : "Please try again."
       });
     }
   };

@@ -1,8 +1,10 @@
 # Chromedia Talent Intelligence
 
-A React + Vite application for managing candidates, skill taxonomy, and client sharing workflows.
+A React + Vite + Express application for managing candidates, skill taxonomy, and client sharing workflows.
 
-This repository runs as a frontend app with a Vite middleware API in `frontend/vite.config.ts`, now backed by PostgreSQL via Prisma.
+This repository uses:
+- `frontend/` for the client app
+- `backend/` for API, auth/RBAC, and database access
 
 ## 1) Product Overview
 
@@ -71,6 +73,7 @@ Primary goals:
 - Tailwind CSS 3
 - PostgreSQL 16 (Docker Compose local setup)
 - Prisma ORM + SQL migrations
+- Express API with Helmet, CORS, cookie-parser, and rate limiting
 
 ## 5) Project Structure
 
@@ -127,6 +130,16 @@ npm run db:import
 npm run db:verify
 ```
 
+### Run Frontend + Backend
+
+```bash
+npm run dev
+```
+
+This starts:
+- backend API on `http://localhost:4000`
+- frontend on `http://localhost:5173` (proxying `/api` to backend)
+
 Quick start sequence (local):
 
 ```bash
@@ -181,8 +194,9 @@ Demo accounts currently shown in UI:
 Notes:
 
 - Candidate self-assessment flow is link-driven and does not require candidate login in the active UX.
-- Auth session token is persisted in local storage key: `chromedia.auth.session.v1`.
-- API uses `x-session-token` header for protected endpoints.
+- Auth now uses short-lived access tokens and rotated refresh tokens in secure HttpOnly cookies.
+- CSRF protection is enforced for state-changing API calls using `x-csrf-token`.
+- Frontend stores only user profile metadata in local storage; session tokens are not exposed to JS.
 
 ## 8) Route Map
 
@@ -205,15 +219,16 @@ Notes:
 
 ## 9) Local API Reference
 
-The app uses Vite middleware as a local API server in `frontend/vite.config.ts`.
+The app uses the Express backend (`backend/src/server.ts`) as the API server.
 
 ### Auth
 
 | Method | Path | Access | Description |
 |---|---|---|---|
 | POST | `/api/auth/login` | Public | Login with email/password |
-| GET | `/api/auth/session` | Session token | Resolve active session |
-| POST | `/api/auth/logout` | Session token | Revoke session |
+| GET | `/api/auth/session` | Cookie session | Resolve active session (auto-refresh if valid refresh token exists) |
+| POST | `/api/auth/refresh` | Cookie session | Rotate refresh token and issue new access token |
+| POST | `/api/auth/logout` | Cookie session | Revoke session and clear cookies |
 
 ### Candidates
 

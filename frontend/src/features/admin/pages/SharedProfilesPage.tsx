@@ -5,7 +5,6 @@ import { SortHeaderLabel } from "../../../shared/components/SortHeaderLabel";
 import { DataTable } from "../../../shared/components/Table";
 import {
   fetchSharedProfilesPage,
-  getSharedProfiles,
   getSharedProfilePublicUrl,
   revokeSharedProfile,
   SharedProfilesQuery,
@@ -175,11 +174,11 @@ export function SharedProfilesPage() {
   };
   const resource = useQueryResource<PaginatedResult<SharedProfileRecord>>({
     initialData: {
-      items: getSharedProfiles().slice(0, PAGE_SIZE),
+      items: [],
       page: 1,
       pageSize: PAGE_SIZE,
-      total: getSharedProfiles().length,
-      totalPages: Math.max(1, Math.ceil(getSharedProfiles().length / PAGE_SIZE))
+      total: 0,
+      totalPages: 1
     },
     fetcher: () =>
       fetchSharedProfilesPage({

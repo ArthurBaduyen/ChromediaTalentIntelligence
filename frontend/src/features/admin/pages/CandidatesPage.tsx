@@ -19,7 +19,6 @@ import {
   CandidateListQuery,
   deleteCandidate,
   fetchCandidatesPage,
-  getCandidates,
   slugifyName,
   updateCandidate
 } from "../data/candidatesDb";
@@ -136,17 +135,16 @@ export function CandidatesPage() {
   const { showToast } = useToast();
   const searchFieldRef = useRef<HTMLInputElement | null>(null);
   const filterTriggerRef = useRef<HTMLDivElement | null>(null);
-  const initialCandidatesPage = useMemo(() => {
-    const all = getCandidates();
-    const total = all.length;
-    return {
-      items: all.slice(0, PAGE_SIZE),
+  const initialCandidatesPage = useMemo(
+    () => ({
+      items: [],
       page: 1,
       pageSize: PAGE_SIZE,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE))
-    };
-  }, []);
+      total: 0,
+      totalPages: 1
+    }),
+    []
+  );
 
   const candidatesResource = useQueryResource<PaginatedResult<CandidateRecord>>({
     initialData: initialCandidatesPage,
@@ -213,7 +211,10 @@ export function CandidatesPage() {
     setIsSearchExpanded(Boolean(query));
   }, [searchParams]);
 
-  const roleOptions = useMemo(() => ["all", ...new Set(getCandidates().map((candidate) => candidate.role).filter(Boolean))], []);
+  const roleOptions = useMemo(
+    () => ["all", ...new Set(candidates.map((candidate) => candidate.role).filter(Boolean))],
+    [candidates]
+  );
 
   const columns = useMemo(
     () => [

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 
 function runTsc(outDir) {
   const args = [
@@ -18,9 +19,9 @@ function runTsc(outDir) {
     "Node",
     "--outDir",
     outDir,
-    "src/features/admin/pages/candidateProfile/types.ts",
-    "src/features/admin/pages/candidateProfile/utils.ts",
-    "src/features/admin/pages/candidateProfile/domain.ts"
+    "frontend/src/features/admin/pages/candidateProfile/types.ts",
+    "frontend/src/features/admin/pages/candidateProfile/utils.ts",
+    "frontend/src/features/admin/pages/candidateProfile/domain.ts"
   ];
   const result = spawnSync("npx", args, { encoding: "utf8" });
   if (result.status !== 0) {
@@ -71,7 +72,31 @@ async function main() {
   try {
     runTsc(tempRoot);
     const require = createRequire(import.meta.url);
-    const domainModule = require(path.join(tempRoot, "features/admin/pages/candidateProfile/domain.js"));
+    const candidatePaths = [
+      path.join(tempRoot, "frontend/src/features/admin/pages/candidateProfile/domain.js"),
+      path.join(tempRoot, "features/admin/pages/candidateProfile/domain.js"),
+      path.join(tempRoot, "domain.js")
+    ];
+    const stack = [tempRoot];
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current) continue;
+      for (const entry of readdirSync(current, { withFileTypes: true })) {
+        const resolved = path.join(current, entry.name);
+        if (entry.isDirectory()) {
+          stack.push(resolved);
+          continue;
+        }
+        if (entry.isFile() && entry.name === "domain.js" && resolved.includes("candidateProfile")) {
+          candidatePaths.push(resolved);
+        }
+      }
+    }
+    const compiledDomainPath = candidatePaths.find((filePath) => existsSync(filePath));
+    if (!compiledDomainPath) {
+      throw new Error("Failed to locate compiled candidateProfile domain.js test module.");
+    }
+    const domainModule = require(compiledDomainPath);
 
     const {
       emptyProfileContent,

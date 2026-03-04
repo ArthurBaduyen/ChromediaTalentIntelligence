@@ -22,9 +22,7 @@ const envSchema = z.object({
   LOGIN_ATTEMPT_WINDOW_MINUTES: z.coerce.number().int().positive().default(15),
   ADMIN_MFA_CODE: z.string().optional(),
   DEMO_SUPER_ADMIN_PASSWORD: z.string().default("password123"),
-  DEMO_ADMIN_PASSWORD: z.string().default("password123"),
-  DEMO_CLIENT_PASSWORD: z.string().default("password123"),
-  DEMO_CANDIDATE_PASSWORD: z.string().default("password123")
+  DEMO_ADMIN_PASSWORD: z.string().default("password123")
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

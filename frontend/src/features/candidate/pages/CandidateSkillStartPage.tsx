@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { CandidateRecord, fetchCandidateById } from "../../admin/data/candidatesDb";
+import { CandidateRecord, fetchPublicCandidateByToken } from "../../admin/data/candidatesDb";
 import { Button } from "../../../shared/components/Button";
 import { APP_ROUTES } from "../../../shared/config/routes";
 
 const brandLogo = "https://www.figma.com/api/mcp/asset/18a2c059-6d4d-42f8-a8b2-1256d07938c5";
 
 export function CandidateSkillStartPage() {
-  const { candidateId = "candidate" } = useParams();
+  const { token = "" } = useParams();
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState<CandidateRecord | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    fetchCandidateById(candidateId).then((record) => {
+    fetchPublicCandidateByToken(token).then((record) => {
       if (mounted) {
         setCandidate(record);
       }
@@ -21,7 +21,7 @@ export function CandidateSkillStartPage() {
     return () => {
       mounted = false;
     };
-  }, [candidateId]);
+  }, [token]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f1f5f9] px-8 py-20">
@@ -42,7 +42,7 @@ export function CandidateSkillStartPage() {
           <Button
             variant="primary"
             className="h-[60px] w-[226px] rounded-lg px-8 text-[18px] font-medium leading-7"
-            onClick={() => navigate(APP_ROUTES.candidate.skills(candidate?.id ?? candidateId))}
+            onClick={() => navigate(APP_ROUTES.candidate.skills(token))}
           >
             Start adding skills
           </Button>

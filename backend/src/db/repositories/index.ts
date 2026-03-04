@@ -4,6 +4,7 @@ import { SharedProfileRepository } from "./SharedProfileRepository";
 import { AuditLogRepository } from "./AuditLogRepository";
 import { AuthSessionRepository } from "./AuthSessionRepository";
 import { UserRepository } from "./UserRepository";
+import { CandidateInviteLinkRepository } from "./CandidateInviteLinkRepository";
 
 export const repositories = {
   candidates: new CandidateRepository(),
@@ -11,5 +12,6 @@ export const repositories = {
   sharedProfiles: new SharedProfileRepository(),
   auditLogs: new AuditLogRepository(),
   authSessions: new AuthSessionRepository(),
-  users: new UserRepository()
+  users: new UserRepository(),
+  candidateInviteLinks: new CandidateInviteLinkRepository()
 };

@@ -56,7 +56,7 @@ export function LoginPage() {
           <img src={brandLogo} alt="Chromedia" className="h-[56px] w-auto object-contain" />
         </div>
         <h1 className="text-2xl font-semibold text-[#242424]">Sign in</h1>
-        <p className="mt-1 text-sm text-[#667085]">Use a super admin, admin, or client demo account below.</p>
+        <p className="mt-1 text-sm text-[#667085]">Use a super admin or admin demo account below.</p>
         {isAuthenticated && session ? (
           <div className="mt-3 flex items-center justify-between rounded-md border border-[#dbe3ea] bg-[#f8fafc] px-3 py-2 text-xs text-[#475467]">
             <span>Signed in as {session.email}</span>

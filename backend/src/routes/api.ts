@@ -1,6 +1,6 @@
 import { AppRole } from "@prisma/client";
-import { Router } from "express";
-import rateLimit from "express-rate-limit";
+import { Router, type Request } from "express";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { z } from "zod";
 import { repositories } from "../db/repositories";
 import { validateBody } from "../middleware/validate";
@@ -21,8 +21,12 @@ const router = Router();
 const env = getAppEnv();
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
+  windowMs: env.LOGIN_RATE_LIMIT_WINDOW_MS,
+  max: env.LOGIN_RATE_LIMIT_MAX,
+  keyGenerator: (req: Request) => {
+    const email = normalizeEmail((req.body as { email?: unknown } | undefined)?.email);
+    return `${email}|${ipKeyGenerator(req.ip ?? "")}`;
+  },
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many login attempts. Please try again later." }
@@ -226,11 +230,69 @@ const resetPasswordCompleteSchema = z
   })
   .strict();
 
-const lockouts = new Map<string, { attempts: number; lockedUntil: number }>();
+type LoginAttemptLock = {
+  attempts: number;
+  firstAttemptAt: number;
+  lockedUntil: number;
+  lastSeenAt: number;
+};
+
+const lockouts = new Map<string, LoginAttemptLock>();
 
 function paramValue(value: unknown) {
   if (Array.isArray(value)) return String(value[0] ?? "");
   return String(value ?? "");
+}
+
+function normalizeEmail(email: unknown) {
+  return String(email ?? "").trim().toLowerCase();
+}
+
+function loginLockKey(email: string, requestIp: string | undefined) {
+  return `${email}|${requestIp ?? "unknown"}`;
+}
+
+function clearLoginLocksForEmail(email: string) {
+  const prefix = `${email}|`;
+  for (const key of lockouts.keys()) {
+    if (key.startsWith(prefix)) {
+      lockouts.delete(key);
+    }
+  }
+}
+
+function cleanupExpiredLoginLocks(nowMs: number) {
+  const retentionMs = env.LOGIN_ATTEMPT_WINDOW_MINUTES * 60 * 1000;
+  for (const [key, value] of lockouts.entries()) {
+    const lockExpired = value.lockedUntil > 0 && value.lockedUntil <= nowMs;
+    const staleWindow = nowMs - value.firstAttemptAt > retentionMs;
+    if (lockExpired && staleWindow) {
+      lockouts.delete(key);
+    }
+  }
+}
+
+function registerFailedLoginAttempt(email: string, requestIp: string | undefined, nowMs: number) {
+  const key = loginLockKey(email, requestIp);
+  const previous = lockouts.get(key);
+  const windowMs = env.LOGIN_ATTEMPT_WINDOW_MINUTES * 60 * 1000;
+  const baseAttempt =
+    previous && nowMs - previous.firstAttemptAt <= windowMs
+      ? previous
+      : { attempts: 0, firstAttemptAt: nowMs, lockedUntil: 0, lastSeenAt: nowMs };
+
+  const attempts = baseAttempt.attempts + 1;
+  const shouldLock = attempts >= env.LOGIN_MAX_ATTEMPTS;
+  const lockedUntil = shouldLock ? nowMs + env.LOGIN_LOCKOUT_MINUTES * 60 * 1000 : 0;
+
+  lockouts.set(key, {
+    attempts,
+    firstAttemptAt: baseAttempt.firstAttemptAt,
+    lockedUntil,
+    lastSeenAt: nowMs
+  });
+
+  return { attempts, lockedUntil };
 }
 
 function parsePagination(query: Record<string, unknown>) {
@@ -328,30 +390,74 @@ router.get("/health", async (_req, res) => {
 
 router.post("/auth/login", loginLimiter, validateBody(authLoginSchema), async (req, res) => {
   const { email, password, otpCode } = req.body as z.infer<typeof authLoginSchema>;
-  const key = email.toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
+  cleanupExpiredLoginLocks(Date.now());
+  const key = loginLockKey(normalizedEmail, req.ip);
   const lock = lockouts.get(key);
   const nowMs = Date.now();
   if (lock && lock.lockedUntil > nowMs) {
+    await appendAuditLog({
+      action: "auth.login_blocked",
+      entityType: "auth",
+      entityId: normalizedEmail || "unknown",
+      actorRole: "admin",
+      actorEmail: normalizedEmail || "unknown",
+      beforeState: null,
+      afterState: null,
+      metadata: {
+        reason: "lockout_active",
+        requestIp: req.ip,
+        lockedUntil: new Date(lock.lockedUntil).toISOString()
+      }
+    });
     res.status(429).json({ message: "Account temporarily locked due to failed attempts." });
     return;
   }
 
   const user = await repositories.users.verifyUserPassword(email, password);
   if (!user) {
-    const prev = lockouts.get(key) ?? { attempts: 0, lockedUntil: 0 };
-    const attempts = prev.attempts + 1;
-    const lockedUntil = attempts >= 5 ? nowMs + 15 * 60 * 1000 : 0;
-    lockouts.set(key, { attempts, lockedUntil });
+    const { attempts, lockedUntil } = registerFailedLoginAttempt(normalizedEmail, req.ip, nowMs);
+    await appendAuditLog({
+      action: "auth.login_failed",
+      entityType: "auth",
+      entityId: normalizedEmail || "unknown",
+      actorRole: "admin",
+      actorEmail: normalizedEmail || "unknown",
+      beforeState: null,
+      afterState: null,
+      metadata: {
+        reason: "invalid_credentials",
+        attempts,
+        requestIp: req.ip,
+        lockedUntil: lockedUntil ? new Date(lockedUntil).toISOString() : null
+      }
+    });
     res.status(401).json({ message: "Invalid email or password" });
     return;
   }
 
   if ((user.role === AppRole.super_admin || user.role === AppRole.admin) && env.ADMIN_MFA_CODE && otpCode !== env.ADMIN_MFA_CODE) {
+    const { attempts, lockedUntil } = registerFailedLoginAttempt(normalizedEmail, req.ip, nowMs);
+    await appendAuditLog({
+      action: "auth.login_failed",
+      entityType: "auth",
+      entityId: normalizedEmail || "unknown",
+      actorRole: "admin",
+      actorEmail: normalizedEmail || "unknown",
+      beforeState: null,
+      afterState: null,
+      metadata: {
+        reason: "invalid_mfa_code",
+        attempts,
+        requestIp: req.ip,
+        lockedUntil: lockedUntil ? new Date(lockedUntil).toISOString() : null
+      }
+    });
     res.status(401).json({ message: "Invalid MFA code" });
     return;
   }
 
-  lockouts.delete(key);
+  clearLoginLocksForEmail(normalizedEmail);
 
   await repositories.authSessions.revokeActiveSessionsForEmail(user.email);
   const candidateId = user.role === AppRole.candidate ? await repositories.users.getCandidateLegacyIdForUser(user.id) : undefined;
@@ -418,6 +524,11 @@ async function refreshSession(refreshToken: string | undefined) {
   const session = await repositories.authSessions.findActiveByToken(refreshToken);
   if (!session) return null;
   if (!session.userId) return null;
+  const userActive = await repositories.users.isUserActive(session.userId);
+  if (!userActive) {
+    await repositories.authSessions.revokeByToken(refreshToken);
+    return null;
+  }
 
   await repositories.authSessions.revokeByToken(refreshToken);
 

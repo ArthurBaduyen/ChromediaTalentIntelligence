@@ -28,6 +28,7 @@
     "test:domain": "node scripts/test-candidate-profile-domain.mjs",
     "test": "npm run test:api",
     "test:share-links": "node scripts/test-share-link-lifecycle.mjs",
+    "test:rbac-smoke": "node scripts/smoke-user-rbac.mjs",
     "test:all": "npm run test:domain && npm run test:api && npm run test:share-links"
   },
   "dependencies": {

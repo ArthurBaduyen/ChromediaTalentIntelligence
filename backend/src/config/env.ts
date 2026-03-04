@@ -12,6 +12,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   COOKIE_SECURE: z.enum(["true", "false"]).optional(),
   ADMIN_MFA_CODE: z.string().optional(),
+  DEMO_SUPER_ADMIN_PASSWORD: z.string().default("password123"),
   DEMO_ADMIN_PASSWORD: z.string().default("password123"),
   DEMO_CLIENT_PASSWORD: z.string().default("password123"),
   DEMO_CANDIDATE_PASSWORD: z.string().default("password123")

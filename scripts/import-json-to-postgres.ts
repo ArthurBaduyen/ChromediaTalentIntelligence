@@ -18,15 +18,17 @@ const dbDir = path.join(root, "backend", "db");
 const wipeRequested = process.argv.includes("--wipe");
 
 const demoUsers: DemoUser[] = [
-  { role: "admin", email: "admin@chromedia.local", password: "password123", name: "Admin User" },
+  { role: "super_admin", email: "superadmin@chromedia.local", username: "superadmin", password: "password123", name: "Super Admin" },
+  { role: "admin", email: "admin@chromedia.local", username: "admin", password: "password123", name: "Admin User" },
   {
     role: "candidate",
     email: "candidate@chromedia.local",
+    username: "candidate",
     password: "password123",
     name: "Alex Morgan",
     candidateId: "alex-morgan"
   },
-  { role: "client", email: "client@chromedia.local", password: "password123", name: "Client User" }
+  { role: "client", email: "client@chromedia.local", username: "client", password: "password123", name: "Client User" }
 ];
 
 async function readJsonFile<T>(filename: string): Promise<T> {
@@ -56,6 +58,7 @@ async function wipeDatabase() {
       "skill_taxonomy",
       "share_links",
       "user_sessions",
+      "password_reset_tokens",
       "candidate_accounts",
       "client_accounts",
       "audit_logs",

@@ -15,6 +15,7 @@ export function signAccessToken(user: AuthUser) {
   const env = getAppEnv();
   const payload: AccessTokenPayload = {
     type: "access",
+    userId: user.userId,
     role: user.role,
     email: user.email,
     name: user.name,

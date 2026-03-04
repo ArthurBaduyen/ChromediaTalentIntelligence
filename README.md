@@ -25,7 +25,8 @@ Primary goals:
 
 | Role | Access | Notes |
 |---|---|---|
-| Admin | Full admin console | Can manage candidates, skills, share links, and audit logs |
+| Super Admin | Full admin console | Can manage users, candidates, skills, share links, and audit logs |
+| Admin | Admin console (limited) | Can manage candidates, skills, share links, profile details; cannot access users/audit logs |
 | Client | Restricted client view | Can access shared/public candidate profile views |
 | Candidate | No login in current candidate flow | Accesses skill flow via emailed link route |
 
@@ -188,8 +189,9 @@ Login page route: `/login`
 
 Demo accounts currently shown in UI:
 
-- `admin@chromedia.local / password123`
-- `client@chromedia.local / password123`
+- `superadmin@chromedia.local / password123` (Super Admin)
+- `admin@chromedia.local / password123` (Admin)
+- `client@chromedia.local / password123` (Client)
 
 Notes:
 
@@ -203,16 +205,16 @@ Notes:
 | Route | Role | Purpose |
 |---|---|---|
 | `/login` | Public | Sign-in page |
-| `/admin/dashboard` | Admin | Dashboard |
-| `/admin/candidates` | Admin | Candidates table |
-| `/admin/candidates/:candidateId` | Admin | Candidate profile editor |
-| `/admin/skills` | Admin | Skills taxonomy management |
-| `/admin/shared-profiles` | Admin | Shared link management |
-| `/admin/audit-logs` | Admin | Audit logs |
-| `/admin/account` | Admin | Account page |
-| `/admin/settings` | Admin | Settings page |
+| `/admin/dashboard` | Super Admin/Admin | Dashboard |
+| `/admin/candidates` | Super Admin/Admin | Candidates table |
+| `/admin/candidates/:candidateId` | Super Admin/Admin | Candidate profile editor |
+| `/admin/skills` | Super Admin/Admin | Skills taxonomy management |
+| `/admin/shared-profiles` | Super Admin/Admin | Shared link management |
+| `/admin/audit-logs` | Super Admin | Audit logs |
+| `/admin/account` | Super Admin/Admin | Account page |
+| `/admin/settings` | Super Admin/Admin | Settings page (`UI` + `User` tab, `User` for Super Admin only) |
 | `/customer` | Client | Customer home |
-| `/customer/candidates/:candidateId/preview` | Admin/Client | Candidate preview view |
+| `/customer/candidates/:candidateId/preview` | Super Admin/Admin/Client | Candidate preview view |
 | `/shared/:shareToken` | Public | Shared profile entry point |
 | `/candidate/:candidateId/start` | Public | Candidate start page |
 | `/candidate/:candidateId/skills` | Public | Candidate skills flow |
@@ -229,6 +231,7 @@ The app uses the Express backend (`backend/src/server.ts`) as the API server.
 | GET | `/api/auth/session` | Cookie session | Resolve active session (auto-refresh if valid refresh token exists) |
 | POST | `/api/auth/refresh` | Cookie session | Rotate refresh token and issue new access token |
 | POST | `/api/auth/logout` | Cookie session | Revoke session and clear cookies |
+| POST | `/api/auth/reset-password` | Public (token-based) | Complete reset flow with one-time token |
 
 ### Candidates
 
@@ -258,6 +261,17 @@ The app uses the Express backend (`backend/src/server.ts`) as the API server.
 | POST | `/api/shared-profiles` | Admin | Create shared link |
 | PUT | `/api/shared-profiles/:id` | Admin | Update shared link |
 | DELETE | `/api/shared-profiles/:id` | Admin | Delete shared link |
+
+### Users (Super Admin only)
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/api/users` | Super Admin | List users (search by email/username) |
+| POST | `/api/users` | Super Admin | Create user |
+| PATCH | `/api/users/:id` | Super Admin | Update role/status/username |
+| POST | `/api/users/:id/reset-password` | Super Admin | Generate one-time reset link |
+| POST | `/api/users/:id/set-password` | Super Admin | Set password directly |
+| DELETE | `/api/users/:id` | Super Admin | Soft delete user (self-delete blocked) |
 | POST | `/api/shared-profiles/:id/revoke` | Admin | Revoke link |
 
 ### Public Shares

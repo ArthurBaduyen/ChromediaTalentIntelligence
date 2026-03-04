@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminShell } from "../layout/AdminShell";
 import { CandidateRecord, fetchCandidates } from "../data/candidatesDb";
@@ -9,6 +9,7 @@ import { DataTable } from "../../../shared/components/Table";
 import { SortHeaderLabel } from "../../../shared/components/SortHeaderLabel";
 import { APP_ROUTES, withQuery } from "../../../shared/config/routes";
 import { EmptyState, QueryErrorBanner, TableSkeleton } from "../../../shared/components/QueryStates";
+import { PaginationControls } from "../../../shared/components/PaginationControls";
 
 type CandidateLifecycle = {
   invited: number;
@@ -26,32 +27,12 @@ type CandidateCompletenessRow = {
   score: number;
 };
 
-type AlertRow = {
-  id: string;
-  label: string;
-  severity: "high" | "medium" | "low";
-  count: number;
-};
-
 type RoleGapRow = {
   id: string;
   role: string;
   demand: number;
   availableNow: number;
   gap: number;
-};
-
-type SkillGapRow = {
-  id: string;
-  category: string;
-  unfilledCount: number;
-};
-
-type ActivityRow = {
-  id: string;
-  when: string;
-  event: string;
-  actor: string;
 };
 
 type WeekStats = {
@@ -189,12 +170,6 @@ function metricCard({
       {subtitle ? <p className="mt-2 text-xs text-[#667085]">{subtitle}</p> : null}
     </button>
   );
-}
-
-function statusBadge(severity: AlertRow["severity"]) {
-  if (severity === "high") return "bg-[#fef2f2] text-[#b42318]";
-  if (severity === "medium") return "bg-[#fffaeb] text-[#b54708]";
-  return "bg-[#ecfdf3] text-[#027a48]";
 }
 
 function formatShortDate(value: Date) {
@@ -354,7 +329,13 @@ function SharedPerformanceChart({ points }: { points: SharedPerformancePoint[] }
 }
 
 export function DashboardPage() {
+  const PROFILE_PAGE_SIZE = 8;
+  const ROLE_GAP_PAGE_SIZE = 8;
+
   const navigate = useNavigate();
+  const [completenessPage, setCompletenessPage] = useState(1);
+  const [roleGapPage, setRoleGapPage] = useState(1);
+
   const candidatesResource = useQueryResource<CandidateRecord[]>({
     initialData: [],
     fetcher: fetchCandidates
@@ -496,30 +477,6 @@ export function DashboardPage() {
 
   const sharedPerformanceSeries = useMemo(() => buildSharedPerformanceSeries(sharedProfiles, 8), [sharedProfiles]);
 
-  const alerts = useMemo<AlertRow[]>(() => {
-    const emptySkills = candidates.filter((candidate) => {
-      const selections = candidate.profile?.skillSelections ?? [];
-      return selections.length === 0 || selections.every((selection) => selection.selectedSubSkills.length === 0);
-    }).length;
-
-    const staleThreshold = new Date(daysAgoIso(14));
-    const staleProfiles = candidates.filter((candidate) => {
-      if (!candidate.updatedAt) return true;
-      const updated = new Date(candidate.updatedAt);
-      return Number.isNaN(updated.getTime()) || updated < staleThreshold;
-    }).length;
-
-    const missingContact = candidates.filter(
-      (candidate) => !candidate.contact?.email?.trim() || !candidate.contact?.phoneNumber?.trim()
-    ).length;
-
-    return [
-      { id: "empty-skills", label: "Candidates with empty skills", severity: "high", count: emptySkills },
-      { id: "stale-profiles", label: "Stale profiles (14+ days)", severity: "medium", count: staleProfiles },
-      { id: "missing-contact", label: "Missing contact info", severity: "high", count: missingContact }
-    ];
-  }, [candidates]);
-
   const roleGapRows = useMemo<RoleGapRow[]>(() => {
     const map = new Map<string, { demand: number; availableNow: number }>();
     for (const candidate of candidates) {
@@ -542,80 +499,20 @@ export function DashboardPage() {
       .sort((a, b) => b.gap - a.gap);
   }, [candidates]);
 
-  const skillGapRows = useMemo<SkillGapRow[]>(() => {
-    const counter = new Map<string, number>();
-    for (const candidate of candidates) {
-      const selections = candidate.profile?.skillSelections ?? [];
-      for (const selection of selections) {
-        if (selection.selectedSubSkills.length === 0) {
-          const category = skillsState.categories.find((item) => item.id === selection.categoryId);
-          const label = category?.name ?? selection.categoryId;
-          counter.set(label, (counter.get(label) ?? 0) + 1);
-        }
-      }
-    }
+  const completenessTotalPages = Math.max(1, Math.ceil(completenessRows.length / PROFILE_PAGE_SIZE));
+  const roleGapTotalPages = Math.max(1, Math.ceil(roleGapRows.length / ROLE_GAP_PAGE_SIZE));
+  const safeCompletenessPage = Math.min(completenessPage, completenessTotalPages);
+  const safeRoleGapPage = Math.min(roleGapPage, roleGapTotalPages);
 
-    return [...counter.entries()]
-      .map(([category, unfilledCount]) => ({ id: category, category, unfilledCount }))
-      .sort((a, b) => b.unfilledCount - a.unfilledCount)
-      .slice(0, 8);
-  }, [candidates, skillsState.categories]);
+  const paginatedCompletenessRows = useMemo(() => {
+    const start = (safeCompletenessPage - 1) * PROFILE_PAGE_SIZE;
+    return completenessRows.slice(start, start + PROFILE_PAGE_SIZE);
+  }, [PROFILE_PAGE_SIZE, completenessRows, safeCompletenessPage]);
 
-  const activityRows = useMemo<ActivityRow[]>(() => {
-    const candidateActivities: ActivityRow[] = candidates
-      .map((candidate) => ({
-        id: `candidate-${candidate.id}`,
-        when: candidate.updatedAt ?? candidate.createdAt ?? "",
-        event: `Candidate updated: ${candidate.name}`,
-        actor: "Admin"
-      }))
-      .filter((item) => Boolean(item.when));
-
-    const skillCategoryActivities: ActivityRow[] = skillsState.categories
-      .map((category) => ({
-        id: `category-${category.id}`,
-        when: category.updatedAt ?? skillsState.updatedAt ?? "",
-        event: `Skill category updated: ${category.name}`,
-        actor: "Admin"
-      }))
-      .filter((item) => Boolean(item.when));
-
-    const capabilityActivities: ActivityRow[] = skillsState.categories.flatMap((category) =>
-      category.skills
-        .map((skill) => ({
-          id: `skill-${skill.id}`,
-          when: skill.updatedAt ?? category.updatedAt ?? skillsState.updatedAt ?? "",
-          event: `Capability set updated: ${category.name} / ${skill.name}`,
-          actor: "Admin"
-        }))
-        .filter((item) => Boolean(item.when))
-    );
-
-    const sharedActivities: ActivityRow[] = sharedProfiles.flatMap((record) => {
-      const rows: ActivityRow[] = [];
-      if (record.sharedAt) {
-        rows.push({
-          id: `share-created-${record.id}`,
-          when: record.sharedAt,
-          event: `Profile shared: ${record.candidateName} -> ${record.sharedWithName}`,
-          actor: "Admin"
-        });
-      }
-      if (record.revokedAt) {
-        rows.push({
-          id: `share-revoked-${record.id}`,
-          when: record.revokedAt,
-          event: `Shared link revoked: ${record.candidateName}`,
-          actor: "Admin"
-        });
-      }
-      return rows;
-    });
-
-    return [...candidateActivities, ...skillCategoryActivities, ...capabilityActivities, ...sharedActivities]
-      .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
-      .slice(0, 12);
-  }, [candidates, skillsState.categories, skillsState.updatedAt, sharedProfiles]);
+  const paginatedRoleGapRows = useMemo(() => {
+    const start = (safeRoleGapPage - 1) * ROLE_GAP_PAGE_SIZE;
+    return roleGapRows.slice(start, start + ROLE_GAP_PAGE_SIZE);
+  }, [ROLE_GAP_PAGE_SIZE, roleGapRows, safeRoleGapPage]);
 
   const completenessColumns = useMemo(
     () => [
@@ -642,33 +539,6 @@ export function DashboardPage() {
         render: (row: RoleGapRow) => row.availableNow
       },
       { key: "gap", label: <SortHeaderLabel>Gap</SortHeaderLabel>, widthClassName: "w-[80px]", render: (row: RoleGapRow) => row.gap }
-    ],
-    []
-  );
-
-  const skillGapColumns = useMemo(
-    () => [
-      { key: "category", label: <SortHeaderLabel>Skill Category</SortHeaderLabel>, render: (row: SkillGapRow) => row.category },
-      {
-        key: "count",
-        label: <SortHeaderLabel>Unfilled</SortHeaderLabel>,
-        widthClassName: "w-[110px]",
-        render: (row: SkillGapRow) => row.unfilledCount
-      }
-    ],
-    []
-  );
-
-  const activityColumns = useMemo(
-    () => [
-      {
-        key: "when",
-        label: <SortHeaderLabel>When</SortHeaderLabel>,
-        widthClassName: "w-[180px]",
-        render: (row: ActivityRow) => new Date(row.when).toLocaleString()
-      },
-      { key: "event", label: <SortHeaderLabel>Change</SortHeaderLabel>, render: (row: ActivityRow) => row.event },
-      { key: "actor", label: <SortHeaderLabel>By</SortHeaderLabel>, widthClassName: "w-[100px]", render: (row: ActivityRow) => row.actor }
     ],
     []
   );
@@ -832,69 +702,47 @@ export function DashboardPage() {
                 <SharedPerformanceChart points={sharedPerformanceSeries} />
               </section>
 
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <article className="rounded-lg border border-[#e2e8f0] bg-white p-4">
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <article className="rounded-lg border border-[#e2e8f0] bg-white p-4 xl:col-span-1">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-base font-semibold leading-6 text-[#0f172a]">Profile Completeness</h2>
                 <p className="text-sm text-[#667085]">Average: {averageCompleteness}%</p>
               </div>
               <DataTable
                 columns={completenessColumns}
-                rows={completenessRows}
+                rows={paginatedCompletenessRows}
                 rowKey={(row) => row.id}
                 emptyMessage={candidatesResource.isLoading ? "Loading completeness..." : "No candidate data available."}
               />
+              <PaginationControls
+                page={safeCompletenessPage}
+                totalPages={completenessTotalPages}
+                total={completenessRows.length}
+                pageSize={PROFILE_PAGE_SIZE}
+                onPageChange={setCompletenessPage}
+                align="right"
+              />
             </article>
 
-            <article className="rounded-lg border border-[#e2e8f0] bg-white p-4">
-              <h2 className="mb-3 text-base font-semibold leading-6 text-[#0f172a]">Alerts</h2>
-              <div className="space-y-2">
-                {alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between rounded-md border border-[#eaecf0] px-3 py-2">
-                    <p className="text-sm text-[#344054]">{alert.label}</p>
-                    <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-[2px] text-xs font-medium ${statusBadge(alert.severity)}`}>
-                        {alert.severity}
-                      </span>
-                      <span className="text-sm font-semibold text-[#0f172a]">{alert.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
-
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <article className="rounded-lg border border-[#e2e8f0] bg-white p-4">
               <h2 className="mb-3 text-base font-semibold leading-6 text-[#0f172a]">Role Demand vs Availability</h2>
               <DataTable
                 columns={roleGapColumns}
-                rows={roleGapRows}
+                rows={paginatedRoleGapRows}
                 rowKey={(row) => row.id}
                 emptyMessage={candidatesResource.isLoading ? "Loading role gaps..." : "No role data available."}
               />
-            </article>
-
-            <article className="rounded-lg border border-[#e2e8f0] bg-white p-4">
-              <h2 className="mb-3 text-base font-semibold leading-6 text-[#0f172a]">Top Skill Gaps</h2>
-              <DataTable
-                columns={skillGapColumns}
-                rows={skillGapRows}
-                rowKey={(row) => row.id}
-                emptyMessage={skillsResource.isLoading ? "Loading skill gaps..." : "No skill gaps detected."}
+              <PaginationControls
+                page={safeRoleGapPage}
+                totalPages={roleGapTotalPages}
+                total={roleGapRows.length}
+                pageSize={ROLE_GAP_PAGE_SIZE}
+                onPageChange={setRoleGapPage}
+                align="right"
               />
             </article>
           </section>
 
-          <section className="rounded-lg border border-[#e2e8f0] bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold leading-6 text-[#0f172a]">Recent Activity (Who changed what)</h2>
-            <DataTable
-              columns={activityColumns}
-              rows={activityRows}
-              rowKey={(row) => row.id}
-              emptyMessage="No recent changes yet."
-            />
-          </section>
             </>
           ) : null}
         </main>

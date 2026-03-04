@@ -191,6 +191,41 @@ const sharedProfileSchema = z
 
 const sharedProfileUpdateSchema = sharedProfileSchema.omit({ id: true });
 
+const userRoleSchema = z.enum(["super_admin", "admin"]);
+
+const userCreateSchema = z
+  .object({
+    email: z.string().email(),
+    username: z.string().min(3).max(64),
+    role: userRoleSchema,
+    password: z.string().min(8)
+  })
+  .strict();
+
+const userPatchSchema = z
+  .object({
+    username: z.string().min(3).max(64).optional(),
+    role: userRoleSchema.optional(),
+    isEnabled: z.boolean().optional()
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one field is required"
+  });
+
+const setPasswordSchema = z
+  .object({
+    password: z.string().min(8)
+  })
+  .strict();
+
+const resetPasswordCompleteSchema = z
+  .object({
+    token: z.string().min(1),
+    password: z.string().min(8)
+  })
+  .strict();
+
 const lockouts = new Map<string, { attempts: number; lockedUntil: number }>();
 
 function paramValue(value: unknown) {
@@ -273,6 +308,19 @@ async function appendAuditLog(record: Omit<AuditLogRecord, "id" | "createdAt">) 
   await repositories.auditLogs.append(record);
 }
 
+function authActorRole(role: AppRole): AuditLogRecord["actorRole"] {
+  if (role === AppRole.candidate) return "candidate";
+  if (role === AppRole.client) return "client";
+  return "admin";
+}
+
+function displayNameFromUserRole(role: AppRole) {
+  if (role === AppRole.super_admin) return "Super Admin";
+  if (role === AppRole.admin) return "Admin User";
+  if (role === AppRole.candidate) return "Alex Morgan";
+  return "Client User";
+}
+
 router.get("/health", async (_req, res) => {
   await checkDatabaseHealth();
   res.json({ ok: true });
@@ -298,7 +346,7 @@ router.post("/auth/login", loginLimiter, validateBody(authLoginSchema), async (r
     return;
   }
 
-  if (user.role === AppRole.admin && env.ADMIN_MFA_CODE && otpCode !== env.ADMIN_MFA_CODE) {
+  if ((user.role === AppRole.super_admin || user.role === AppRole.admin) && env.ADMIN_MFA_CODE && otpCode !== env.ADMIN_MFA_CODE) {
     res.status(401).json({ message: "Invalid MFA code" });
     return;
   }
@@ -307,13 +355,14 @@ router.post("/auth/login", loginLimiter, validateBody(authLoginSchema), async (r
 
   await repositories.authSessions.revokeActiveSessionsForEmail(user.email);
   const candidateId = user.role === AppRole.candidate ? await repositories.users.getCandidateLegacyIdForUser(user.id) : undefined;
-  const userName = user.role === AppRole.candidate ? "Alex Morgan" : user.role === AppRole.admin ? "Admin User" : "Client User";
+  const userName = displayNameFromUserRole(user.role);
 
   const refreshToken = generateRefreshToken();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
   const authSession: AuthSessionRecord = {
     token: refreshToken,
+    userId: user.id,
     role: user.role,
     email: user.email,
     name: userName,
@@ -324,6 +373,7 @@ router.post("/auth/login", loginLimiter, validateBody(authLoginSchema), async (r
   await repositories.authSessions.create(authSession);
 
   const accessToken = signAccessToken({
+    userId: user.id,
     role: user.role,
     email: authSession.email,
     name: authSession.name,
@@ -349,7 +399,7 @@ router.post("/auth/login", loginLimiter, validateBody(authLoginSchema), async (r
     action: "auth.login",
     entityType: "auth",
     entityId: user.email,
-    actorRole: user.role,
+    actorRole: authActorRole(user.role),
     actorEmail: user.email,
     beforeState: null,
     afterState: { role: user.role }
@@ -367,6 +417,7 @@ async function refreshSession(refreshToken: string | undefined) {
   if (!refreshToken) return null;
   const session = await repositories.authSessions.findActiveByToken(refreshToken);
   if (!session) return null;
+  if (!session.userId) return null;
 
   await repositories.authSessions.revokeByToken(refreshToken);
 
@@ -375,6 +426,7 @@ async function refreshSession(refreshToken: string | undefined) {
   const expiresAt = new Date(now.getTime() + env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
   await repositories.authSessions.create({
     token: nextRefresh,
+    userId: session.userId,
     role: session.role,
     email: session.email,
     name: session.name,
@@ -384,6 +436,7 @@ async function refreshSession(refreshToken: string | undefined) {
   });
 
   const accessToken = signAccessToken({
+    userId: session.userId,
     role: session.role,
     email: session.email,
     name: session.name,
@@ -474,7 +527,7 @@ router.post("/auth/logout", async (req, res) => {
         action: "auth.logout",
         entityType: "auth",
         entityId: revoked.email,
-        actorRole: revoked.role,
+        actorRole: revoked.role === "candidate" ? "candidate" : revoked.role === "client" ? "client" : "admin",
         actorEmail: revoked.email,
         beforeState: { active: true },
         afterState: { active: false }
@@ -486,6 +539,150 @@ router.post("/auth/logout", async (req, res) => {
   res.clearCookie(REFRESH_COOKIE, clearCookieOptions());
   res.clearCookie(CSRF_COOKIE, { ...csrfCookieOptions(), maxAge: 0 });
   res.json({ ok: true });
+});
+
+router.post("/auth/reset-password", validateBody(resetPasswordCompleteSchema), async (req, res) => {
+  const { token, password } = req.body as z.infer<typeof resetPasswordCompleteSchema>;
+  const user = await repositories.users.consumePasswordResetToken(token, password);
+  if (!user) {
+    res.status(400).json({ message: "Invalid or expired reset token" });
+    return;
+  }
+  await appendAuditLog({
+    action: "user.password_reset.completed",
+    entityType: "auth",
+    entityId: user.email,
+    actorRole: "admin",
+    actorEmail: user.email,
+    beforeState: null,
+    afterState: { reset: true }
+  });
+  res.json({ ok: true });
+});
+
+router.get("/users", requireAuth, requireRole(AppRole.super_admin), async (req, res) => {
+  const q = String(req.query.q ?? "").trim();
+  const rows = await repositories.users.listManagedUsers(q || undefined);
+  res.json(rows);
+});
+
+router.post("/users", requireAuth, requireRole(AppRole.super_admin), validateBody(userCreateSchema), async (req, res) => {
+  try {
+    const payload = req.body as z.infer<typeof userCreateSchema>;
+    const created = await repositories.users.createManagedUser({
+      email: payload.email,
+      username: payload.username,
+      role: payload.role,
+      password: payload.password
+    });
+    await appendAuditLog({
+      action: "user.create",
+      entityType: "auth",
+      entityId: created.email,
+      actorRole: authActorRole(req.auth!.role),
+      actorEmail: req.auth!.email,
+      beforeState: null,
+      afterState: created
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create user" });
+  }
+});
+
+router.patch("/users/:id", requireAuth, requireRole(AppRole.super_admin), validateBody(userPatchSchema), async (req, res) => {
+  const userId = paramValue(req.params.id);
+  const previous = await repositories.users.findManagedUserById(userId);
+  if (!previous) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  try {
+    const payload = req.body as z.infer<typeof userPatchSchema>;
+    const updated = await repositories.users.updateManagedUser(userId, payload);
+    await appendAuditLog({
+      action: "user.update",
+      entityType: "auth",
+      entityId: updated.email,
+      actorRole: authActorRole(req.auth!.role),
+      actorEmail: req.auth!.email,
+      beforeState: previous,
+      afterState: updated
+    });
+    res.json(updated);
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update user" });
+  }
+});
+
+router.post("/users/:id/reset-password", requireAuth, requireRole(AppRole.super_admin), async (req, res) => {
+  const userId = paramValue(req.params.id);
+  const target = await repositories.users.findManagedUserById(userId);
+  if (!target) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  const reset = await repositories.users.createPasswordResetToken(userId);
+  const resetLink = `${env.CORS_ORIGIN}/login?resetToken=${encodeURIComponent(reset.token)}`;
+  await appendAuditLog({
+    action: "user.password_reset.requested",
+    entityType: "auth",
+    entityId: target.email,
+    actorRole: authActorRole(req.auth!.role),
+    actorEmail: req.auth!.email,
+    beforeState: null,
+    afterState: { expiresAt: reset.expiresAt }
+  });
+  res.json({ resetLink, expiresAt: reset.expiresAt });
+});
+
+router.post("/users/:id/set-password", requireAuth, requireRole(AppRole.super_admin), validateBody(setPasswordSchema), async (req, res) => {
+  const userId = paramValue(req.params.id);
+  const target = await repositories.users.findManagedUserById(userId);
+  if (!target) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  const { password } = req.body as z.infer<typeof setPasswordSchema>;
+  await repositories.users.setPassword(userId, password);
+  await appendAuditLog({
+    action: "user.password_set",
+    entityType: "auth",
+    entityId: target.email,
+    actorRole: authActorRole(req.auth!.role),
+    actorEmail: req.auth!.email,
+    beforeState: null,
+    afterState: { changed: true }
+  });
+  res.json({ ok: true });
+});
+
+router.delete("/users/:id", requireAuth, requireRole(AppRole.super_admin), async (req, res) => {
+  const userId = paramValue(req.params.id);
+  const previous = await repositories.users.findManagedUserById(userId);
+  if (!previous) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  try {
+    if (!req.auth?.userId) {
+      res.status(401).json({ message: "Authentication required" });
+      return;
+    }
+    const deleted = await repositories.users.softDeleteManagedUser(userId, req.auth.userId);
+    await appendAuditLog({
+      action: "user.delete",
+      entityType: "auth",
+      entityId: deleted.email,
+      actorRole: authActorRole(req.auth!.role),
+      actorEmail: req.auth!.email,
+      beforeState: previous,
+      afterState: { deletedAt: new Date().toISOString() }
+    });
+    res.json({ id: userId, deleted: true });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : "Failed to delete user" });
+  }
 });
 
 router.get("/public-shares/:token", async (req, res) => {
@@ -525,7 +722,7 @@ router.get("/public-shares/:token/candidate", async (req, res) => {
   res.json(candidate);
 });
 
-router.get("/candidates/query", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.get("/candidates/query", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
   const records = await repositories.candidates.list();
   const { page, pageSize } = parsePagination(req.query as Record<string, unknown>);
   const q = String(req.query.q ?? "").trim().toLowerCase();
@@ -563,12 +760,12 @@ router.get("/candidates/query", requireAuth, requireRole(AppRole.admin), async (
   res.json(paginate(sorted, page, pageSize));
 });
 
-router.get("/candidates", requireAuth, requireRole(AppRole.admin), async (_req, res) => {
+router.get("/candidates", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (_req, res) => {
   res.json(await repositories.candidates.list());
 });
 
 router.get("/candidates/:id", requireAuth, async (req, res, next) => {
-  if (req.auth?.role === AppRole.admin) return next();
+  if (req.auth?.role === AppRole.admin || req.auth?.role === AppRole.super_admin) return next();
   return requireCandidateOwner(req, res, next);
 }, async (req, res) => {
   const record = await repositories.candidates.findByLegacyId(paramValue(req.params.id));
@@ -579,13 +776,13 @@ router.get("/candidates/:id", requireAuth, async (req, res, next) => {
   res.json(record);
 });
 
-router.post("/candidates", requireAuth, requireRole(AppRole.admin), validateBody(candidateSchema), async (req, res) => {
+router.post("/candidates", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), validateBody(candidateSchema), async (req, res) => {
   const candidate = await repositories.candidates.upsert(req.body as CandidateRecord);
   await appendAuditLog({
     action: "candidate.create",
     entityType: "candidate",
     entityId: candidate.id,
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: null,
     afterState: candidate
@@ -594,7 +791,7 @@ router.post("/candidates", requireAuth, requireRole(AppRole.admin), validateBody
 });
 
 router.put("/candidates/:id", requireAuth, async (req, res, next) => {
-  if (req.auth?.role === AppRole.admin) return next();
+  if (req.auth?.role === AppRole.admin || req.auth?.role === AppRole.super_admin) return next();
   return requireCandidateOwner(req, res, next);
 }, validateBody(candidateUpdateSchema), async (req, res) => {
   const previous = await repositories.candidates.findByLegacyId(paramValue(req.params.id));
@@ -606,7 +803,7 @@ router.put("/candidates/:id", requireAuth, async (req, res, next) => {
     action: "candidate.update",
     entityType: "candidate",
     entityId: paramValue(req.params.id),
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: candidate
@@ -614,14 +811,14 @@ router.put("/candidates/:id", requireAuth, async (req, res, next) => {
   res.json(candidate);
 });
 
-router.delete("/candidates/:id", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.delete("/candidates/:id", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
   const previous = await repositories.candidates.findByLegacyId(paramValue(req.params.id));
   await repositories.candidates.softDelete(paramValue(req.params.id));
   await appendAuditLog({
     action: "candidate.delete",
     entityType: "candidate",
     entityId: paramValue(req.params.id),
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: null
@@ -690,14 +887,14 @@ router.get("/skills", requireAuth, async (_req, res) => {
   res.json(await repositories.skills.getState());
 });
 
-router.put("/skills", requireAuth, requireRole(AppRole.admin), validateBody(skillsSchema), async (req, res) => {
+router.put("/skills", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), validateBody(skillsSchema), async (req, res) => {
   const previous = await repositories.skills.getState();
   const updated = await repositories.skills.replaceState(req.body as SkillsState);
   await appendAuditLog({
     action: "skills.update",
     entityType: "skills",
     entityId: "taxonomy",
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: updated
@@ -705,7 +902,7 @@ router.put("/skills", requireAuth, requireRole(AppRole.admin), validateBody(skil
   res.json(updated);
 });
 
-router.get("/shared-profiles/query", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.get("/shared-profiles/query", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
   const records = await repositories.sharedProfiles.list();
   const { page, pageSize } = parsePagination(req.query as Record<string, unknown>);
   const q = String(req.query.q ?? "").trim().toLowerCase();
@@ -738,17 +935,17 @@ router.get("/shared-profiles/query", requireAuth, requireRole(AppRole.admin), as
   res.json(paginate(sorted, page, pageSize));
 });
 
-router.get("/shared-profiles", requireAuth, requireRole(AppRole.admin), async (_req, res) => {
+router.get("/shared-profiles", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (_req, res) => {
   res.json(await repositories.sharedProfiles.list());
 });
 
-router.post("/shared-profiles", requireAuth, requireRole(AppRole.admin), validateBody(sharedProfileSchema), async (req, res) => {
+router.post("/shared-profiles", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), validateBody(sharedProfileSchema), async (req, res) => {
   const saved = await repositories.sharedProfiles.upsert(req.body as SharedProfileRecord);
   await appendAuditLog({
     action: "shared_profile.create",
     entityType: "shared_profile",
     entityId: saved.id,
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: null,
     afterState: saved
@@ -756,7 +953,7 @@ router.post("/shared-profiles", requireAuth, requireRole(AppRole.admin), validat
   res.status(201).json(saved);
 });
 
-router.post("/shared-profiles/:id/revoke", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.post("/shared-profiles/:id/revoke", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
   const previous = await repositories.sharedProfiles.findByLegacyId(paramValue(req.params.id));
   if (!previous) {
     res.status(404).json({ message: "Shared profile not found" });
@@ -767,7 +964,7 @@ router.post("/shared-profiles/:id/revoke", requireAuth, requireRole(AppRole.admi
     action: "shared_profile.revoke",
     entityType: "shared_profile",
     entityId: paramValue(req.params.id),
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: revoked
@@ -775,7 +972,7 @@ router.post("/shared-profiles/:id/revoke", requireAuth, requireRole(AppRole.admi
   res.json(revoked);
 });
 
-router.put("/shared-profiles/:id", requireAuth, requireRole(AppRole.admin), validateBody(sharedProfileUpdateSchema), async (req, res) => {
+router.put("/shared-profiles/:id", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), validateBody(sharedProfileUpdateSchema), async (req, res) => {
   const previous = await repositories.sharedProfiles.findByLegacyId(paramValue(req.params.id));
   const updated = await repositories.sharedProfiles.upsert({
     ...(req.body as Omit<SharedProfileRecord, "id">),
@@ -785,7 +982,7 @@ router.put("/shared-profiles/:id", requireAuth, requireRole(AppRole.admin), vali
     action: "shared_profile.update",
     entityType: "shared_profile",
     entityId: paramValue(req.params.id),
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: updated
@@ -793,14 +990,14 @@ router.put("/shared-profiles/:id", requireAuth, requireRole(AppRole.admin), vali
   res.json(updated);
 });
 
-router.delete("/shared-profiles/:id", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.delete("/shared-profiles/:id", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
   const previous = await repositories.sharedProfiles.findByLegacyId(paramValue(req.params.id));
   await repositories.sharedProfiles.softDelete(paramValue(req.params.id));
   await appendAuditLog({
     action: "shared_profile.delete",
     entityType: "shared_profile",
     entityId: paramValue(req.params.id),
-    actorRole: req.auth!.role,
+    actorRole: authActorRole(req.auth!.role),
     actorEmail: req.auth!.email,
     beforeState: previous,
     afterState: null
@@ -808,7 +1005,7 @@ router.delete("/shared-profiles/:id", requireAuth, requireRole(AppRole.admin), a
   res.json({ id: paramValue(req.params.id), deleted: true });
 });
 
-router.get("/audit-logs/query", requireAuth, requireRole(AppRole.admin), async (req, res) => {
+router.get("/audit-logs/query", requireAuth, requireRole(AppRole.super_admin), async (req, res) => {
   const logs = await repositories.auditLogs.list();
   const { page, pageSize } = parsePagination(req.query as Record<string, unknown>);
   const q = String(req.query.q ?? "").trim().toLowerCase();
@@ -839,7 +1036,7 @@ router.get("/audit-logs/query", requireAuth, requireRole(AppRole.admin), async (
   res.json(paginate(sorted, page, pageSize));
 });
 
-router.get("/audit-logs", requireAuth, requireRole(AppRole.admin), async (_req, res) => {
+router.get("/audit-logs", requireAuth, requireRole(AppRole.super_admin), async (_req, res) => {
   res.json(await repositories.auditLogs.list());
 });
 

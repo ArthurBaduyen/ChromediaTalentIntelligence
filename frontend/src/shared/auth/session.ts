@@ -10,6 +10,7 @@ export type AuthSession = {
 export const AUTH_STORAGE_KEY = "chromedia.auth.session.v1";
 
 export const DEMO_ACCOUNTS: Array<AuthSession & { password: string }> = [
+  { role: "super_admin", email: "superadmin@chromedia.local", password: "password123", name: "Super Admin" },
   { role: "admin", email: "admin@chromedia.local", password: "password123", name: "Admin User" },
   { role: "client", email: "client@chromedia.local", password: "password123", name: "Client User" }
 ];

@@ -66,7 +66,6 @@ const STATIC_NAV_ITEMS: NavItem[] = [
 
 const brandLogo = "https://www.figma.com/api/mcp/asset/18a2c059-6d4d-42f8-a8b2-1256d07938c5";
 const clientAvatar = "https://www.figma.com/api/mcp/asset/230ccce5-50d8-487a-82e3-1c15832044bc";
-const candidateAvatar = "https://www.figma.com/api/mcp/asset/1de7cd0b-8d22-4417-9f74-e989c00c5071";
 const backIconAsset = "https://www.figma.com/api/mcp/asset/2f5b7717-cd66-4014-90f0-3a07fe71099e";
 const locationIconAsset = "https://www.figma.com/api/mcp/asset/15f55cd8-a4df-45eb-9daa-fbe9c38bb8ea";
 
@@ -1269,8 +1268,7 @@ export function CandidateProfilePage() {
                   </button>
                 ) : null}
 
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <img src={candidateAvatar} alt="Dianne" className="h-10 w-10 rounded-full object-cover" />
+                <div className="flex min-w-0 flex-1 items-center">
                   <div>
                     <h1 className="text-[20px] font-semibold leading-[30px] text-[#242424]">{candidate?.name ?? "Dianne"}</h1>
                     <div className="flex flex-wrap items-center gap-4 text-[#494949]">

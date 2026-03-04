@@ -42,7 +42,7 @@ function BrandLogo() {
 export function AdminShell({ children, hideSidebar = false }: AdminShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
 
   const topItems = [
     {
@@ -69,12 +69,16 @@ export function AdminShell({ children, hideSidebar = false }: AdminShellProps) {
       active: location.pathname.startsWith(APP_ROUTES.admin.sharedProfiles),
       to: APP_ROUTES.admin.sharedProfiles
     },
-    {
-      label: "Audit Logs",
-      icon: <AuditIcon className="h-5 w-5" />,
-      active: location.pathname.startsWith(APP_ROUTES.admin.auditLogs),
-      to: APP_ROUTES.admin.auditLogs
-    }
+    ...(role === "super_admin"
+      ? [
+          {
+            label: "Audit Logs",
+            icon: <AuditIcon className="h-5 w-5" />,
+            active: location.pathname.startsWith(APP_ROUTES.admin.auditLogs),
+            to: APP_ROUTES.admin.auditLogs
+          }
+        ]
+      : [])
   ];
   const resolvedBottomItems = [
     {

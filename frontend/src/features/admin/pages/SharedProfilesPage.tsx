@@ -16,12 +16,14 @@ import { ModalShell } from "../../../shared/components/ModalShell";
 import { FormInputField } from "../../../shared/components/FormInputField";
 import { FormSelectField } from "../../../shared/components/FormSelectField";
 import { Button } from "../../../shared/components/Button";
+import { FilterIcon, SearchIcon } from "../../../shared/components/Icons";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { RowActionsButton } from "../../../shared/components/RowActionsButton";
 import { FloatingPopover } from "../../../shared/components/FloatingPopover";
 import { AuditLogRecord, fetchAuditLogs } from "../data/auditLogsDb";
 import { EmptyState, QueryErrorBanner, TableSkeleton } from "../../../shared/components/QueryStates";
 import { PaginationControls } from "../../../shared/components/PaginationControls";
+import { useDebouncedValue } from "../../../shared/hooks/useDebouncedValue";
 import type { PaginatedResult } from "../../../shared/types/pagination";
 
 function remainingDays(expirationDate: string) {
@@ -158,10 +160,15 @@ export function SharedProfilesPage() {
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const [page, setPage] = useState(1);
-  const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SharedProfilesQuery["sortBy"]>("sharedAt");
   const [sortDir, setSortDir] = useState<SharedProfilesQuery["sortDir"]>("desc");
+  const searchFieldRef = useRef<HTMLInputElement | null>(null);
+  const filterTriggerRef = useRef<HTMLDivElement | null>(null);
+  const debouncedSearch = useDebouncedValue(searchInput, 180);
   const toggleSort = (nextSortBy: NonNullable<SharedProfilesQuery["sortBy"]>) => {
     setSortBy((previousSortBy) => {
       if (previousSortBy === nextSortBy) {
@@ -184,12 +191,12 @@ export function SharedProfilesPage() {
       fetchSharedProfilesPage({
         page,
         pageSize: PAGE_SIZE,
-        q: query.trim(),
+        q: debouncedSearch.trim(),
         status: statusFilter,
         sortBy,
         sortDir
       }),
-    deps: [page, query, statusFilter, sortBy, sortDir]
+    deps: [page, debouncedSearch, statusFilter, sortBy, sortDir]
   });
   const [editing, setEditing] = useState<SharedProfileRecord | null>(null);
   const [editRate, setEditRate] = useState("");
@@ -207,20 +214,26 @@ export function SharedProfilesPage() {
   }, [editing?.id]);
 
   useEffect(() => {
+    if (!isSearchExpanded) return;
+    searchFieldRef.current?.focus();
+  }, [isSearchExpanded]);
+
+  useEffect(() => {
     const nextQuery = searchParams.get("q");
     const nextStatus = searchParams.get("status");
     const nextSortBy = searchParams.get("sortBy");
     const nextSortDir = searchParams.get("sortDir");
 
-    setQuery(nextQuery ?? "");
+    setSearchInput(nextQuery ?? "");
     setStatusFilter(nextStatus ?? "all");
     setSortBy((nextSortBy as SharedProfilesQuery["sortBy"]) ?? "sharedAt");
     setSortDir(nextSortDir === "asc" ? "asc" : "desc");
+    setIsSearchExpanded(Boolean(nextQuery));
   }, [searchParams]);
 
   useEffect(() => {
     setPage(1);
-  }, [query, statusFilter, sortBy, sortDir]);
+  }, [debouncedSearch, statusFilter, sortBy, sortDir]);
 
   useEffect(() => {
     fetchAuditLogs()
@@ -493,30 +506,81 @@ export function SharedProfilesPage() {
         </div>
       </ModalShell>
       <div className="flex min-h-full flex-1 flex-col bg-white p-4 shadow-[0_10px_20px_rgba(148,163,184,0.2)]">
-        <header className="sticky top-0 z-20 bg-white pb-3">
-          <h1 className="text-xl font-semibold text-[#242424]">Shared Profiles</h1>
-          <p className="mt-1 text-sm text-[#667085]">Track who received candidate profile links and when they expire.</p>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <div className="w-[360px]">
-              <FormInputField
-                label="Search"
-                value={query}
-                onChange={setQuery}
-                placeholder="Candidate or recipient"
-              />
+        <header className="sticky top-0 z-20 flex items-start justify-between bg-white pb-3">
+          <div>
+            <h1 className="text-xl font-semibold text-[#242424]">Shared Profiles</h1>
+            <p className="mt-1 text-sm text-[#667085]">Track who received candidate profile links and when they expire.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div
+              className={`overflow-hidden transition-all duration-200 ${
+                isSearchExpanded ? "w-[280px] opacity-100" : "w-0 opacity-0"
+              }`}
+            >
+              <div className="flex h-9 items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-3">
+                <SearchIcon className="h-4 w-4 text-[#667085]" />
+                <input
+                  ref={searchFieldRef}
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Search candidate or recipient"
+                  className="h-full w-full bg-transparent text-sm text-[#344054] outline-none placeholder:text-[#98a2b3]"
+                />
+              </div>
             </div>
-            <div className="w-[220px]">
-              <FormSelectField
-                label="Status"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "active", label: "Active" },
-                  { value: "expired", label: "Expired" },
-                  { value: "revoked", label: "Revoked" }
-                ]}
-              />
+            <Button
+              variant="icon"
+              className="h-9 w-9"
+              aria-label="Search"
+              onClick={() => setIsSearchExpanded((previous) => !previous)}
+            >
+              <SearchIcon className="h-4 w-4" />
+            </Button>
+            <div ref={filterTriggerRef} className="relative">
+              <Button
+                variant="icon"
+                className="h-9 w-9"
+                aria-label="Filter"
+                onClick={() => setIsFilterOpen((previous) => !previous)}
+              >
+                <FilterIcon className="h-4 w-4" />
+              </Button>
+              <FloatingPopover
+                open={isFilterOpen}
+                anchorRef={filterTriggerRef}
+                align="end"
+                className="w-[320px] rounded-lg border border-[#dbe3ea] bg-white p-3 shadow-[0_10px_20px_rgba(15,23,42,0.12)]"
+                onRequestClose={() => setIsFilterOpen(false)}
+              >
+                <div className="space-y-3">
+                  <FormSelectField
+                    label="Status"
+                    value={statusFilter}
+                    onChange={(event) => setStatusFilter(event.target.value)}
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "active", label: "Active" },
+                      { value: "expired", label: "Expired" },
+                      { value: "revoked", label: "Revoked" }
+                    ]}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="whitespace-nowrap"
+                      onClick={() => {
+                        setSearchInput("");
+                        setStatusFilter("all");
+                        setSortBy("sharedAt");
+                        setSortDir("desc");
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </div>
+              </FloatingPopover>
             </div>
           </div>
         </header>

@@ -5,7 +5,7 @@ import { useAuth } from "./AuthProvider";
 import { APP_ROUTES } from "../config/routes";
 
 export function defaultPathForRole(role: AppRole, candidateId?: string) {
-  if (role === "admin") return APP_ROUTES.admin.dashboard;
+  if (role === "super_admin" || role === "admin") return APP_ROUTES.admin.dashboard;
   if (role === "candidate") return APP_ROUTES.login;
   return APP_ROUTES.customer.home;
 }

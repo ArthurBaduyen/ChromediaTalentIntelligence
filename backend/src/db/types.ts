@@ -101,13 +101,15 @@ export type SharedProfileRecord = {
 
 export type AuthSessionRecord = {
   token: string;
-  role: "admin" | "candidate" | "client";
+  userId?: string;
+  role: "super_admin" | "admin" | "candidate" | "client";
   email: string;
   name: string;
   candidateId?: string;
   expiresAt: string;
   revokedAt?: string;
   createdAt: string;
+  lastSeenAt?: string;
 };
 
 export type AuditLogRecord = {
@@ -126,9 +128,24 @@ export type AuditLogRecord = {
 export type CreateAuditLogInput = Omit<AuditLogRecord, "id" | "createdAt">;
 
 export type DemoUser = {
-  role: "admin" | "candidate" | "client";
+  role: "super_admin" | "admin" | "candidate" | "client";
   email: string;
+  username?: string;
   password: string;
   name: string;
   candidateId?: string;
+};
+
+export type UserRole = "super_admin" | "admin";
+
+export type ManagedUserRecord = {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  role: UserRole;
+  isEnabled: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
 };

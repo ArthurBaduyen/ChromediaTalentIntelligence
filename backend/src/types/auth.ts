@@ -1,6 +1,7 @@
 import type { AppRole } from "@prisma/client";
 
 export type AuthUser = {
+  userId: string;
   role: AppRole;
   email: string;
   name: string;

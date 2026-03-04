@@ -47,7 +47,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.dashboard}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <DashboardPage />
           </ProtectedRoute>
         }
@@ -55,7 +55,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.account}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <AccountPage />
           </ProtectedRoute>
         }
@@ -63,7 +63,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.settings}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <SettingsPage />
           </ProtectedRoute>
         }
@@ -71,7 +71,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.candidates}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <CandidatesPage />
           </ProtectedRoute>
         }
@@ -79,7 +79,7 @@ export function App() {
       <Route
         path="/admin/candidates/:candidateId"
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <CandidateProfilePage />
           </ProtectedRoute>
         }
@@ -87,7 +87,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.skills}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <SkillsPage />
           </ProtectedRoute>
         }
@@ -95,7 +95,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.sharedProfiles}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <SharedProfilesPage />
           </ProtectedRoute>
         }
@@ -103,7 +103,7 @@ export function App() {
       <Route
         path={APP_ROUTES.admin.auditLogs}
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["super_admin"]}>
             <AuditLogsPage />
           </ProtectedRoute>
         }
@@ -111,7 +111,7 @@ export function App() {
       <Route
         path="/customer/candidates/:candidateId/preview"
         element={
-          <ProtectedRoute allowedRoles={["admin", "client"]}>
+          <ProtectedRoute allowedRoles={["super_admin", "admin", "client"]}>
             <CandidateProfilePage />
           </ProtectedRoute>
         }

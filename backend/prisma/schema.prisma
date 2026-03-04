@@ -7,6 +7,7 @@ datasource db {
 }
 
 enum AppRole {
+  super_admin
   admin
   candidate
   client
@@ -37,20 +38,23 @@ enum AuditActorRole {
 model User {
   id           String            @id @default(uuid()) @db.Uuid
   email        String            @unique
+  username     String            @unique
   passwordHash String            @map("password_hash")
   role         AppRole
-  isActive     Boolean           @default(true) @map("is_active")
+  isEnabled    Boolean           @default(true) @map("is_enabled")
   lastLoginAt  DateTime?         @map("last_login_at") @db.Timestamptz(6)
   createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt    DateTime?         @map("deleted_at") @db.Timestamptz(6)
   sessions     AuthSession[]
+  passwordResetTokens PasswordResetToken[]
   candidate    CandidateAccount?
   client       ClientAccount?
   auditLogs    AuditLog[]
   shareLinks   SharedProfile[]   @relation("ShareLinksByUser")
 
   @@index([role])
+  @@index([isEnabled])
   @@index([deletedAt])
   @@map("users")
 }
@@ -124,6 +128,7 @@ model AuthSession {
   revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
   deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSeenAt    DateTime? @map("last_seen_at") @db.Timestamptz(6)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   candidate     Candidate? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
@@ -133,6 +138,21 @@ model AuthSession {
   @@index([expiresAt])
   @@index([deletedAt])
   @@map("user_sessions")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([usedAt])
+  @@map("password_reset_tokens")
 }
 
 model SharedProfile {

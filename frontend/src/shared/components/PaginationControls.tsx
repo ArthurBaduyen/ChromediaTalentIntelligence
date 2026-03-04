@@ -3,13 +3,15 @@ export function PaginationControls({
   totalPages,
   total,
   pageSize,
-  onPageChange
+  onPageChange,
+  align = "center"
 }: {
   page: number;
   totalPages: number;
   total: number;
   pageSize: number;
   onPageChange: (nextPage: number) => void;
+  align?: "center" | "right";
 }) {
   const canPrev = page > 1;
   const canNext = page < totalPages;
@@ -32,8 +34,13 @@ export function PaginationControls({
     pageItems.push(1, "ellipsis", page - 1, page, page + 1, "ellipsis", safeTotalPages);
   }
 
+  const wrapperClass =
+    align === "right"
+      ? "mt-4 grid w-full grid-cols-[1fr_auto] items-center gap-4"
+      : "mt-4 grid w-full grid-cols-[1fr_auto_1fr] items-center";
+
   return (
-    <div className="mt-4 grid w-full grid-cols-[1fr_auto_1fr] items-center">
+    <div className={wrapperClass}>
       <p className="justify-self-start text-xs text-[#667085]">
         {total === 0 ? "0 results" : `Showing ${Math.min((page - 1) * pageSize + 1, total)}-${Math.min(page * pageSize, total)} of ${total}`}
       </p>
@@ -82,7 +89,7 @@ export function PaginationControls({
           </svg>
         </button>
       </nav>
-      <div />
+      {align === "center" ? <div /> : null}
     </div>
   );
 }

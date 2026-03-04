@@ -5,11 +5,9 @@ import {
   CandidateProfileSkillSelectionItem,
   CandidateRecord,
   fetchCandidateById,
-  getCandidateById,
-  getCandidates,
   updateCandidate
 } from "../../admin/data/candidatesDb";
-import { fetchSkillsState, getSkillsState } from "../../admin/data/skillsDb";
+import { SkillsState, fetchSkillsState } from "../../admin/data/skillsDb";
 import { Button } from "../../../shared/components/Button";
 import { CloseIcon } from "../../../shared/components/Icons";
 import { useToast } from "../../../shared/components/ToastProvider";
@@ -157,8 +155,8 @@ export function CandidateSkillFormPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [candidate, setCandidate] = useState<CandidateRecord | undefined>(() => getCandidateById(candidateId) ?? getCandidates()[0]);
-  const [skillsState, setSkillsState] = useState(() => getSkillsState());
+  const [candidate, setCandidate] = useState<CandidateRecord | null>(null);
+  const [skillsState, setSkillsState] = useState<SkillsState>({ categories: [] });
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [draftSelections, setDraftSelections] = useState<Record<string, string[]>>({});
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);

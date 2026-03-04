@@ -5,7 +5,6 @@ export type AuthSession = {
   email: string;
   name: string;
   candidateId?: string;
-  sessionToken?: string;
 };
 
 export const AUTH_STORAGE_KEY = "chromedia.auth.session.v1";
@@ -27,8 +26,7 @@ export function getStoredAuthSession(): AuthSession | null {
       email: parsed.email,
       role: parsed.role,
       name: parsed.name,
-      candidateId: parsed.candidateId,
-      sessionToken: typeof parsed.sessionToken === "string" ? parsed.sessionToken : undefined
+      candidateId: parsed.candidateId
     };
   } catch {
     return null;
@@ -52,6 +50,7 @@ export function resolveDemoAccount(email: string, password: string) {
 export async function apiLogin(email: string, password: string) {
   const response = await fetch("/api/auth/login", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
   });
@@ -63,20 +62,19 @@ export async function apiLogin(email: string, password: string) {
   return { success: true as const, session: payload };
 }
 
-export async function apiGetSession(sessionToken: string) {
+export async function apiGetSession() {
   const response = await fetch("/api/auth/session", {
     method: "GET",
-    headers: { "x-session-token": sessionToken }
+    credentials: "include"
   });
   if (!response.ok) return null;
   return (await response.json()) as AuthSession;
 }
 
-export async function apiLogout(sessionToken?: string) {
-  if (!sessionToken) return;
+export async function apiLogout() {
   await fetch("/api/auth/logout", {
     method: "POST",
-    headers: { "x-session-token": sessionToken }
+    credentials: "include"
   }).catch(() => {
     // noop
   });

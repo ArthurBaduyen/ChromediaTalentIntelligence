@@ -8,11 +8,9 @@ import {
   CandidateRecord,
   fetchCandidateById,
   fetchPublicCandidateByShareToken,
-  getCandidateById,
-  getCandidates,
   updateCandidate
 } from "../data/candidatesDb";
-import { SkillsState, fetchSkillsState, getSkillsState } from "../data/skillsDb";
+import { SkillsState, fetchSkillsState } from "../data/skillsDb";
 import {
   addSharedProfile,
   fetchSharedProfiles,
@@ -479,14 +477,12 @@ export function CandidateProfilePage() {
   const isSharedView = Boolean(shareToken);
   const resolvedCandidateId = candidateId ?? "dianne";
   const [activeNav, setActiveNav] = useState("about");
-  const [candidate, setCandidate] = useState<CandidateRecord | undefined>(() =>
-    isSharedView ? undefined : (getCandidateById(resolvedCandidateId) ?? getCandidates()[0])
-  );
+  const [candidate, setCandidate] = useState<CandidateRecord | undefined>(undefined);
   const [sharedRecipient, setSharedRecipient] = useState<Pick<SharedProfileRecord, "sharedWithName" | "sharedWithEmail"> | null>(null);
   const [adminSharedRecipient, setAdminSharedRecipient] = useState<Pick<SharedProfileRecord, "sharedWithName" | "sharedWithEmail"> | null>(null);
   const [isShareLinkInvalid, setIsShareLinkInvalid] = useState(false);
   const [isShareLinkLoading, setIsShareLinkLoading] = useState(isSharedView);
-  const [skillsState, setSkillsState] = useState<SkillsState>(() => getSkillsState());
+  const [skillsState, setSkillsState] = useState<SkillsState>({ categories: [] });
   const { showToast } = useToast();
   const skillsSaveTimerRef = useRef<number | null>(null);
   const pendingSkillSelectionsRef = useRef<CandidateProfileSkillSelection[] | null>(null);
@@ -521,7 +517,7 @@ export function CandidateProfilePage() {
       });
     } else {
       fetchCandidateById(resolvedCandidateId).then((record) => {
-        if (mounted) setCandidate(record);
+        if (mounted) setCandidate(record ?? undefined);
       });
       setSharedRecipient(null);
       setIsShareLinkInvalid(false);

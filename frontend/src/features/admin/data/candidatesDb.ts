@@ -173,7 +173,7 @@ function emptyProfile(): CandidateProfileData {
   };
 }
 
-const seedCandidates: CandidateRecord[] = [
+export const seedCandidates: CandidateRecord[] = [
   {
     id: "dianne",
     name: "Dianne",
@@ -301,10 +301,18 @@ function normalizeContact(contact?: CandidateContact) {
 
 function normalizeProfile(profile?: CandidateProfileData, capabilityLookup: CapabilityLookup = buildCapabilityLookup()): CandidateProfileData | undefined {
   if (!profile) return undefined;
+  const hasCapabilityLookup = capabilityLookup.ids.size > 0;
   const migratedSelections = (profile.skillSelections ?? []).map((selection) => {
     const nextItems = uniqueBy(
       (selection.selectedSubSkills ?? [])
         .map((item) => {
+          if (!hasCapabilityLookup && item.capabilityId) {
+            return {
+              skillId: item.skillId,
+              level: item.level,
+              capabilityId: item.capabilityId
+            };
+          }
           const capabilityId =
             (item.capabilityId && capabilityLookup.ids.has(item.capabilityId) ? item.capabilityId : undefined) ??
             (item.text ? capabilityLookup.textToId.get(capabilityTextKey(item.skillId, item.level, item.text)) : undefined);
@@ -437,42 +445,21 @@ function migrateLegacyStorage() {
 }
 
 export function getCandidates(): CandidateRecord[] {
-  const capabilityLookup = buildCapabilityLookup();
-  if (!hasWindow()) return seedCandidates.map((item) => normalizeCandidate(item, item.id, capabilityLookup));
-
-  const current = safeParseCandidates(window.localStorage.getItem(STORAGE_KEY), capabilityLookup);
-  if (current && current.length > 0) {
-    return current;
-  }
-
-  const migrated = migrateLegacyStorage();
-  if (migrated && migrated.length > 0) {
-    return migrated;
-  }
-
-  const seeded = seedCandidates.map((item) => normalizeCandidate(item, item.id, capabilityLookup));
-  persist(seeded);
-  return seeded;
+  return [];
 }
 
 export function saveCandidates(records: CandidateRecord[]) {
-  const capabilityLookup = buildCapabilityLookup();
-  persist(records.map((item) => normalizeCandidate(item, item.id, capabilityLookup)));
+  void records;
 }
 
 export async function fetchCandidates() {
   const capabilityLookup = buildCapabilityLookup();
-  if (!hasWindow()) return seedCandidates.map((item) => normalizeCandidate(item, item.id, capabilityLookup));
-  try {
-    const response = await fetchWithAuth(API_URL);
-    if (!response.ok) throw new Error(`Failed GET ${API_URL}`);
-    const records = (await response.json()) as CandidateRecord[];
-    const normalized = uniqueBy(records.map((item) => normalizeCandidate(item, item.id, capabilityLookup)), (item) => item.id);
-    persist(normalized);
-    return normalized;
-  } catch {
-    return getCandidates();
+  const response = await fetchWithAuth(API_URL);
+  if (!response.ok) {
+    throw new Error(`Failed GET ${API_URL}`);
   }
+  const records = (await response.json()) as CandidateRecord[];
+  return uniqueBy(records.map((item) => normalizeCandidate(item, item.id, capabilityLookup)), (item) => item.id);
 }
 
 export async function fetchCandidatesPage(query: CandidateListQuery): Promise<PaginatedResult<CandidateRecord>> {
@@ -500,8 +487,9 @@ export async function fetchCandidatesPage(query: CandidateListQuery): Promise<Pa
 }
 
 export async function fetchCandidateById(id: string) {
-  const candidates = await fetchCandidates();
-  return candidates.find((candidate) => candidate.id === id) ?? candidates[0];
+  const response = await fetchWithAuth(`${API_URL}/${id}`);
+  if (!response.ok) return null;
+  return normalizeCandidate((await response.json()) as CandidateRecord, id);
 }
 
 export async function fetchPublicCandidateByShareToken(token: string) {
@@ -523,23 +511,16 @@ export async function addCandidate(input: NewCandidateInput): Promise<CandidateR
 
   const timestamp = nowIso();
   const next = normalizeCandidate({ ...input, createdAt: timestamp, updatedAt: timestamp });
-  try {
-    const response = await fetchWithAuth(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next)
-    });
-    if (!response.ok) throw new Error(`Failed POST ${API_URL}`);
-    const created = normalizeCandidate((await response.json()) as CandidateRecord, next.id);
-    const existing = getCandidates().filter((candidate) => candidate.id !== created.id);
-    persist([created, ...existing]);
-    return created;
-  } catch {
-    const existing = getCandidates();
-    const deduped = existing.filter((candidate) => candidate.id !== next.id);
-    persist([next, ...deduped]);
-    return next;
+  const response = await fetchWithAuth(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(next)
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? `Failed POST ${API_URL}`);
   }
+  return normalizeCandidate((await response.json()) as CandidateRecord, next.id);
 }
 
 export async function updateCandidate(id: string, input: NewCandidateInput): Promise<CandidateRecord> {
@@ -548,7 +529,7 @@ export async function updateCandidate(id: string, input: NewCandidateInput): Pro
     throw new Error(Object.values(validation.errors)[0] ?? "Invalid candidate input");
   }
 
-  const previous = getCandidateById(id);
+  const previous = await fetchCandidateById(id);
   const timestamp = nowIso();
   const next = {
     ...normalizeCandidate(
@@ -561,44 +542,45 @@ export async function updateCandidate(id: string, input: NewCandidateInput): Pro
     )
   };
 
-  try {
-    const response = await fetchWithAuth(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next)
-    });
-    if (!response.ok) throw new Error(`Failed PUT ${API_URL}/${id}`);
-    const updated = normalizeCandidate((await response.json()) as CandidateRecord, id);
-    const existing = getCandidates().filter((candidate) => candidate.id !== updated.id);
-    persist([updated, ...existing]);
-    return updated;
-  } catch {
-    const existing = getCandidates().filter((candidate) => candidate.id !== id);
-    persist([next, ...existing]);
-    return next;
+  const response = await fetchWithAuth(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: next.name,
+      role: next.role,
+      technologies: next.technologies,
+      expectedSalary: next.expectedSalary,
+      available: next.available,
+      status: next.status,
+      contact: next.contact,
+      location: next.location,
+      compensation: next.compensation,
+      employment: next.employment,
+      profile: next.profile,
+      schemaVersion: next.schemaVersion,
+      createdAt: next.createdAt,
+      updatedAt: next.updatedAt
+    })
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? `Failed PUT ${API_URL}/${id}`);
   }
+  return normalizeCandidate((await response.json()) as CandidateRecord, id);
 }
 
 export async function deleteCandidate(id: string) {
-  try {
-    const response = await fetchWithAuth(`${API_URL}/${id}`, { method: "DELETE" });
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        throw new Error("Not authorized to delete candidate. Please sign in as admin.");
-      }
-      throw new Error(`Failed DELETE ${API_URL}/${id}`);
+  const response = await fetchWithAuth(`${API_URL}/${id}`, { method: "DELETE" });
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Not authorized to delete candidate. Please sign in as admin.");
     }
-  } catch (error) {
-    if (!(error instanceof TypeError)) {
-      throw error;
-    }
-    // Network failure fallback for offline/dev interruptions only.
+    throw new Error(`Failed DELETE ${API_URL}/${id}`);
   }
-  const next = getCandidates().filter((candidate) => candidate.id !== id);
-  persist(next);
-  return next;
+  return [];
 }
 
 export function getCandidateById(id: string) {
-  return getCandidates().find((candidate) => candidate.id === id);
+  void id;
+  return undefined;
 }

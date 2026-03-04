@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminShell } from "../layout/AdminShell";
 import { DataTable } from "../../../shared/components/Table";
 import { SortHeaderLabel } from "../../../shared/components/SortHeaderLabel";
@@ -6,8 +6,11 @@ import { useQueryResource } from "../../../shared/hooks/useQueryResource";
 import { AuditLogRecord, fetchAuditLogsPage } from "../data/auditLogsDb";
 import { FormSelectField } from "../../../shared/components/FormSelectField";
 import { EmptyState, QueryErrorBanner, TableSkeleton } from "../../../shared/components/QueryStates";
-import { FormInputField } from "../../../shared/components/FormInputField";
 import { PaginationControls } from "../../../shared/components/PaginationControls";
+import { Button } from "../../../shared/components/Button";
+import { FilterIcon, SearchIcon } from "../../../shared/components/Icons";
+import { FloatingPopover } from "../../../shared/components/FloatingPopover";
+import { useDebouncedValue } from "../../../shared/hooks/useDebouncedValue";
 import type { PaginatedResult } from "../../../shared/types/pagination";
 
 function formatDateTime(value: string) {
@@ -26,10 +29,15 @@ export function AuditLogsPage() {
   const PAGE_SIZE = 12;
   const [actionFilter, setActionFilter] = useState("all");
   const [entityFilter, setEntityFilter] = useState("all");
-  const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"createdAt" | "action" | "entityType" | "entityId" | "actorEmail">("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
+  const searchFieldRef = useRef<HTMLInputElement | null>(null);
+  const filterTriggerRef = useRef<HTMLDivElement | null>(null);
+  const debouncedSearch = useDebouncedValue(searchInput, 180);
   const toggleSort = (nextSortBy: "createdAt" | "action" | "entityType" | "entityId" | "actorEmail") => {
     setSortBy((previousSortBy) => {
       if (previousSortBy === nextSortBy) {
@@ -47,18 +55,23 @@ export function AuditLogsPage() {
       fetchAuditLogsPage({
         page,
         pageSize: PAGE_SIZE,
-        q: query.trim(),
+        q: debouncedSearch.trim(),
         action: actionFilter,
         entity: entityFilter,
         sortBy,
         sortDir
       }),
-    deps: [page, query, actionFilter, entityFilter, sortBy, sortDir]
+    deps: [page, debouncedSearch, actionFilter, entityFilter, sortBy, sortDir]
   });
 
   useEffect(() => {
+    if (!isSearchExpanded) return;
+    searchFieldRef.current?.focus();
+  }, [isSearchExpanded]);
+
+  useEffect(() => {
     setPage(1);
-  }, [actionFilter, entityFilter, query, sortBy, sortDir]);
+  }, [actionFilter, entityFilter, debouncedSearch, sortBy, sortDir]);
   const rows = resource.data.items;
 
   const actionOptions = useMemo(
@@ -133,38 +146,92 @@ export function AuditLogsPage() {
   return (
     <AdminShell>
       <div className="flex min-h-full flex-1 flex-col bg-white p-4 shadow-[0_10px_20px_rgba(148,163,184,0.2)]">
-        <header className="sticky top-0 z-20 bg-white pb-3">
-          <h1 className="text-xl font-semibold text-[#242424]">Audit Logs</h1>
-          <p className="mt-1 text-sm text-[#667085]">Track who changed what across candidates, skills, and sharing.</p>
+        <header className="sticky top-0 z-20 flex items-start justify-between bg-white pb-3">
+          <div>
+            <h1 className="text-xl font-semibold text-[#242424]">Audit Logs</h1>
+            <p className="mt-1 text-sm text-[#667085]">Track who changed what across candidates, skills, and sharing.</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div
+              className={`overflow-hidden transition-all duration-200 ${
+                isSearchExpanded ? "w-[280px] opacity-100" : "w-0 opacity-0"
+              }`}
+            >
+              <div className="flex h-9 items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-3">
+                <SearchIcon className="h-4 w-4 text-[#667085]" />
+                <input
+                  ref={searchFieldRef}
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Search action, entity, actor"
+                  className="h-full w-full bg-transparent text-sm text-[#344054] outline-none placeholder:text-[#98a2b3]"
+                />
+              </div>
+            </div>
+            <Button
+              variant="icon"
+              className="h-9 w-9"
+              aria-label="Search"
+              onClick={() => setIsSearchExpanded((previous) => !previous)}
+            >
+              <SearchIcon className="h-4 w-4" />
+            </Button>
+            <div ref={filterTriggerRef} className="relative">
+              <Button
+                variant="icon"
+                className="h-9 w-9"
+                aria-label="Filter"
+                onClick={() => setIsFilterOpen((previous) => !previous)}
+              >
+                <FilterIcon className="h-4 w-4" />
+              </Button>
+              <FloatingPopover
+                open={isFilterOpen}
+                anchorRef={filterTriggerRef}
+                align="end"
+                className="w-[320px] rounded-lg border border-[#dbe3ea] bg-white p-3 shadow-[0_10px_20px_rgba(15,23,42,0.12)]"
+                onRequestClose={() => setIsFilterOpen(false)}
+              >
+                <div className="space-y-3">
+                  <FormSelectField
+                    label="Action"
+                    value={actionFilter}
+                    onChange={(event) => setActionFilter(event.target.value)}
+                    options={actionOptions.map((option) => ({
+                      value: option,
+                      label: option === "all" ? "All actions" : option
+                    }))}
+                  />
+                  <FormSelectField
+                    label="Entity"
+                    value={entityFilter}
+                    onChange={(event) => setEntityFilter(event.target.value)}
+                    options={entityOptions.map((option) => ({
+                      value: option,
+                      label: option === "all" ? "All entities" : option
+                    }))}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="whitespace-nowrap"
+                      onClick={() => {
+                        setSearchInput("");
+                        setActionFilter("all");
+                        setEntityFilter("all");
+                        setSortBy("createdAt");
+                        setSortDir("desc");
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </div>
+              </FloatingPopover>
+            </div>
+          </div>
         </header>
-
-        <section className="mb-3 mt-1 flex flex-wrap items-end gap-3">
-          <div className="w-[360px]">
-            <FormInputField label="Search" value={query} onChange={setQuery} placeholder="Action, entity, or actor" />
-          </div>
-          <div className="w-[220px]">
-            <FormSelectField
-              label="Action"
-              value={actionFilter}
-              onChange={(event) => setActionFilter(event.target.value)}
-              options={actionOptions.map((option) => ({
-                value: option,
-                label: option === "all" ? "All actions" : option
-              }))}
-            />
-          </div>
-          <div className="w-[220px]">
-            <FormSelectField
-              label="Entity"
-              value={entityFilter}
-              onChange={(event) => setEntityFilter(event.target.value)}
-              options={entityOptions.map((option) => ({
-                value: option,
-                label: option === "all" ? "All entities" : option
-              }))}
-            />
-          </div>
-        </section>
 
         <main>
           {resource.error ? (

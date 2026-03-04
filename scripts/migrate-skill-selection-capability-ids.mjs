@@ -2,8 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const candidatesFile = path.join(root, 'db', 'candidates.json');
-const skillsFile = path.join(root, 'db', 'skills.json');
+const candidatesFile = path.join(root, 'backend', 'db', 'candidates.json');
+const skillsFile = path.join(root, 'backend', 'db', 'skills.json');
 
 function capabilityIdForEntry(skillId, level, index) {
   return `${skillId}::${level}::${index}`;

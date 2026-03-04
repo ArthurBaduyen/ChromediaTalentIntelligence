@@ -3,9 +3,9 @@
 This folder contains static handoff files for your product pages and modals.
 
 ## How to use
-1. Open `/Users/arthur/Work/Chromedia/ChromediaTalentIntelligence/static/index.html` in browser.
+1. Open `/Users/arthur/Work/Chromedia/ChromediaTalentIntelligence/frontend/Static/index.html` in browser.
 2. Navigate to individual page/modal files.
-3. Styles are shared through `/Users/arthur/Work/Chromedia/ChromediaTalentIntelligence/static/styles.css`.
+3. Styles are shared through `/Users/arthur/Work/Chromedia/ChromediaTalentIntelligence/frontend/Static/styles.css`.
 
 ## Structure
 - `pages/`: main app pages

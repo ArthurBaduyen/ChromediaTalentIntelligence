@@ -2,7 +2,7 @@
 
 A React + Vite application for managing candidates, skill taxonomy, and client sharing workflows.
 
-This repository runs as a frontend app with a Vite middleware API in `vite.config.ts`, now backed by PostgreSQL via Prisma.
+This repository runs as a frontend app with a Vite middleware API in `frontend/vite.config.ts`, now backed by PostgreSQL via Prisma.
 
 ## 1) Product Overview
 
@@ -76,14 +76,15 @@ Primary goals:
 
 | Path | Purpose |
 |---|---|
-| `src/app` | App shell, routes, global styles |
-| `src/features/admin` | Admin pages, components, data layer |
-| `src/features/candidate` | Candidate start and skill-flow pages |
-| `src/features/customer` | Customer/client page(s) |
-| `src/shared` | Shared auth, UI components, hooks, helpers |
-| `db` | JSON data files used by the local API |
+| `frontend/` | Client-side app (React/Vite UI + routes/components) |
+| `backend/` | Server-side concerns (Prisma schema/migrations, data layer, legacy JSON) |
+| `frontend/src/app` | App shell, routes, global styles |
+| `frontend/src/features` | Feature modules (admin/candidate/customer/auth/design) |
+| `frontend/src/shared` | Shared auth, UI components, hooks, helpers |
+| `backend/db` | Legacy JSON files kept for import/backfill |
 | `scripts` | Migration and integration test scripts |
 | `docs` | Architecture notes and plans |
+| `docker` | Docker-related supporting config files |
 
 ## 6) Run the App
 
@@ -204,7 +205,7 @@ Notes:
 
 ## 9) Local API Reference
 
-The app uses Vite middleware as a local API server in `vite.config.ts`.
+The app uses Vite middleware as a local API server in `frontend/vite.config.ts`.
 
 ### Auth
 
@@ -270,15 +271,15 @@ The app uses Vite middleware as a local API server in `vite.config.ts`.
 
 ## 11) Database Structure (Non-Technical View)
 
-Primary data store is PostgreSQL. Legacy JSON files under `db/` are still kept for import/backfill.
+Primary data store is PostgreSQL. Legacy JSON files under `backend/db/` are still kept for import/backfill.
 
 | File | What it stores | Example use |
 |---|---|---|
-| `db/candidates.json` | Candidate records and profile content | About, projects, skills selected |
-| `db/skills.json` | Skills taxonomy | Categories, skills, capability entries |
-| `db/sharedProfiles.json` | Shared profile links | Who received link, expiry, rate label |
-| `db/auditLogs.json` | Change history | Candidate updates, share actions, auth events |
-| `db/authSessions.json` | Active/expired login sessions | Admin/client login state |
+| `backend/db/candidates.json` | Candidate records and profile content | About, projects, skills selected |
+| `backend/db/skills.json` | Skills taxonomy | Categories, skills, capability entries |
+| `backend/db/sharedProfiles.json` | Shared profile links | Who received link, expiry, rate label |
+| `backend/db/auditLogs.json` | Change history | Candidate updates, share actions, auth events |
+| `backend/db/authSessions.json` | Active/expired login sessions | Admin/client login state |
 
 ## 12) Database Structure (Technical Snapshot)
 
@@ -365,7 +366,7 @@ Script location: `scripts/migrate-skill-selection-capability-ids.mjs`.
 
 - Check link expiration date.
 - Check if link was revoked/deleted.
-- Confirm token exists in `db/sharedProfiles.json`.
+- Confirm token exists in `backend/db/sharedProfiles.json`.
 
 ### Data not updating in UI
 

@@ -2,8 +2,8 @@ import "dotenv/config";
 import { promises as fs } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { prisma } from "../src/db/prismaClient";
-import { repositories } from "../src/db/repositories";
+import { prisma } from "../backend/src/db/prismaClient";
+import { repositories } from "../backend/src/db/repositories";
 import type {
   AuditLogRecord,
   AuthSessionRecord,
@@ -11,10 +11,10 @@ import type {
   SharedProfileRecord,
   SkillsState,
   DemoUser
-} from "../src/db/types";
+} from "../backend/src/db/types";
 
 const root = process.cwd();
-const dbDir = path.join(root, "db");
+const dbDir = path.join(root, "backend", "db");
 const wipeRequested = process.argv.includes("--wipe");
 
 const demoUsers: DemoUser[] = [
@@ -30,8 +30,17 @@ const demoUsers: DemoUser[] = [
 ];
 
 async function readJsonFile<T>(filename: string): Promise<T> {
-  const raw = await fs.readFile(path.join(dbDir, filename), "utf8");
-  return JSON.parse(raw) as T;
+  const filePath = path.join(dbDir, filename);
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as T;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      console.warn(`Skipping missing file: ${filePath}`);
+      return ([] as unknown) as T;
+    }
+    throw error;
+  }
 }
 
 async function wipeDatabase() {
@@ -62,13 +71,16 @@ async function main() {
     await wipeDatabase();
   }
 
-  const [skillsState, candidates, sharedProfiles, authSessions, auditLogs] = await Promise.all([
-    readJsonFile<SkillsState>("skills.json"),
+  const [skillsStateRaw, candidates, sharedProfiles, authSessions, auditLogs] = await Promise.all([
+    readJsonFile<SkillsState | null>("skills.json"),
     readJsonFile<CandidateRecord[]>("candidates.json"),
     readJsonFile<SharedProfileRecord[]>("sharedProfiles.json"),
     readJsonFile<AuthSessionRecord[]>("authSessions.json"),
     readJsonFile<AuditLogRecord[]>("auditLogs.json")
   ]);
+  const skillsState: SkillsState = skillsStateRaw && Array.isArray((skillsStateRaw as SkillsState).categories)
+    ? (skillsStateRaw as SkillsState)
+    : { categories: [] };
 
   console.log("Importing skills taxonomy...");
   await repositories.skills.replaceState(skillsState);

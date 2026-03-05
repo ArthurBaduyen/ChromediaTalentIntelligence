@@ -58,6 +58,44 @@ export type TestCaseGenerateInput = {
   persist?: boolean;
 };
 
+export type TestRunStatus = "InProgress" | "Completed";
+export type TestExecutionStatus = "NotRun" | "Pass" | "Fail" | "Blocked";
+
+export type TestRunSummary = {
+  total: number;
+  pass: number;
+  fail: number;
+  blocked: number;
+  notRun: number;
+};
+
+export type TestRunRecord = {
+  id: string;
+  featureId: string;
+  name: string;
+  tester: string;
+  notes: string;
+  status: TestRunStatus;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  summary: TestRunSummary;
+};
+
+export type TestRunResultRecord = {
+  id: string;
+  runId: string;
+  testCaseId: string;
+  status: TestExecutionStatus;
+  testedBy: string;
+  notes: string;
+  defectLink: string;
+  executedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 const FEATURES_API = "/api/features";
 
 function normalizeList(items: unknown): string[] {
@@ -84,6 +122,34 @@ function normalizeTestCase(input: TestCaseRecord): TestCaseRecord {
     steps: normalizeList(input.steps),
     expectedResults: normalizeList(input.expectedResults),
     tags: normalizeList(input.tags)
+  };
+}
+
+function normalizeSummary(input: TestRunSummary | undefined, totalFallback = 0): TestRunSummary {
+  return {
+    total: input?.total ?? totalFallback,
+    pass: input?.pass ?? 0,
+    fail: input?.fail ?? 0,
+    blocked: input?.blocked ?? 0,
+    notRun: input?.notRun ?? totalFallback
+  };
+}
+
+function normalizeTestRun(input: TestRunRecord): TestRunRecord {
+  return {
+    ...input,
+    tester: input.tester ?? "",
+    notes: input.notes ?? "",
+    summary: normalizeSummary(input.summary)
+  };
+}
+
+function normalizeTestRunResult(input: TestRunResultRecord): TestRunResultRecord {
+  return {
+    ...input,
+    testedBy: input.testedBy ?? "",
+    notes: input.notes ?? "",
+    defectLink: input.defectLink ?? ""
   };
 }
 
@@ -156,6 +222,54 @@ export async function generateFeatureTestCases(featureId: string, input: TestCas
   if (!response.ok) throw new Error("Failed to generate baseline test cases");
   const payload = (await response.json()) as { featureId: string; generated: TestCaseRecord[] };
   return { ...payload, generated: payload.generated.map(normalizeTestCase) };
+}
+
+export async function fetchFeatureTestRuns(featureId: string) {
+  const response = await fetchWithAuth(`${FEATURES_API}/${encodeURIComponent(featureId)}/test-runs`);
+  if (!response.ok) throw new Error("Failed to fetch test runs");
+  const rows = (await response.json()) as TestRunRecord[];
+  return rows.map(normalizeTestRun);
+}
+
+export async function createFeatureTestRun(featureId: string, input: { name: string; tester?: string; notes?: string }) {
+  const response = await fetchWithAuth(`${FEATURES_API}/${encodeURIComponent(featureId)}/test-runs`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input)
+  });
+  if (!response.ok) throw new Error("Failed to create test run");
+  return normalizeTestRun((await response.json()) as TestRunRecord);
+}
+
+export async function updateTestRun(runId: string, input: Partial<{ name: string; tester: string; notes: string; status: TestRunStatus; completedAt: string }>) {
+  const response = await fetchWithAuth(`/api/test-runs/${encodeURIComponent(runId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input)
+  });
+  if (!response.ok) throw new Error("Failed to update test run");
+  return normalizeTestRun((await response.json()) as TestRunRecord);
+}
+
+export async function fetchTestRunResults(runId: string) {
+  const response = await fetchWithAuth(`/api/test-runs/${encodeURIComponent(runId)}/results`);
+  if (!response.ok) throw new Error("Failed to fetch test run results");
+  const rows = (await response.json()) as TestRunResultRecord[];
+  return rows.map(normalizeTestRunResult);
+}
+
+export async function upsertTestRunResult(
+  runId: string,
+  testCaseId: string,
+  input: { status: TestExecutionStatus; testedBy?: string; notes?: string; defectLink?: string; executedAt?: string }
+) {
+  const response = await fetchWithAuth(`/api/test-runs/${encodeURIComponent(runId)}/results/${encodeURIComponent(testCaseId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input)
+  });
+  if (!response.ok) throw new Error("Failed to update test run result");
+  return normalizeTestRunResult((await response.json()) as TestRunResultRecord);
 }
 
 function escapeCsv(value: unknown) {

@@ -9,17 +9,25 @@ import { useDebouncedValue } from "../../../shared/hooks/useDebouncedValue";
 import {
   createFeature,
   createFeatureTestCase,
+  createFeatureTestRun,
   deleteTestCase,
   downloadTestCasesCsv,
   fetchFeatureTestCases,
+  fetchFeatureTestRuns,
   fetchFeatures,
+  fetchTestRunResults,
   generateFeatureTestCases,
   type FeatureRecord,
   type TestCaseBundleKey,
+  type TestExecutionStatus,
   type TestCaseInput,
   type TestCasePriority,
   type TestCaseRecord,
   type TestCaseType,
+  type TestRunRecord,
+  type TestRunResultRecord,
+  updateTestRun,
+  upsertTestRunResult,
   updateTestCase
 } from "../data/testCasesDb";
 
@@ -38,8 +46,23 @@ type EditorState = {
   tags: string;
 };
 
+type RunFormState = {
+  name: string;
+  tester: string;
+  notes: string;
+};
+
+type ResultEditorState = {
+  testCaseId: string;
+  status: TestExecutionStatus;
+  testedBy: string;
+  notes: string;
+  defectLink: string;
+};
+
 const TEST_TYPES: TestCaseType[] = ["Smoke", "Functional", "Negative", "Regression", "API", "Integration", "UI", "Security", "Performance"];
 const TEST_PRIORITIES: TestCasePriority[] = ["P0", "P1", "P2"];
+const EXECUTION_STATUSES: TestExecutionStatus[] = ["NotRun", "Pass", "Fail", "Blocked"];
 const BUNDLES: TestCaseBundleKey[] = [
   "smoke",
   "functional",
@@ -130,6 +153,14 @@ function toCreateInput(featureId: string, state: EditorState): TestCaseInput {
   };
 }
 
+function defaultRunForm(featureName: string): RunFormState {
+  return {
+    name: `${featureName || "Feature"} Test Run`,
+    tester: "",
+    notes: ""
+  };
+}
+
 export function TestCasesPage() {
   const { showToast } = useToast();
   const [features, setFeatures] = useState<FeatureRecord[]>([]);
@@ -151,6 +182,12 @@ export function TestCasesPage() {
   const [newFeatureBrowsers, setNewFeatureBrowsers] = useState("Chrome latest");
   const [newFeatureHasApi, setNewFeatureHasApi] = useState(true);
   const [disabledBundles, setDisabledBundles] = useState<TestCaseBundleKey[]>([]);
+  const [runs, setRuns] = useState<TestRunRecord[]>([]);
+  const [activeRunId, setActiveRunId] = useState("");
+  const [resultsByTestCaseId, setResultsByTestCaseId] = useState<Record<string, TestRunResultRecord>>({});
+  const [isRunModalOpen, setIsRunModalOpen] = useState(false);
+  const [runForm, setRunForm] = useState<RunFormState>(defaultRunForm(""));
+  const [resultEditor, setResultEditor] = useState<ResultEditorState | null>(null);
 
   const debouncedSearch = useDebouncedValue(searchInput, 200);
 
@@ -179,6 +216,31 @@ export function TestCasesPage() {
     setRows(records);
   }
 
+  async function loadRuns(selectedFeatureId: string) {
+    if (!selectedFeatureId) {
+      setRuns([]);
+      setActiveRunId("");
+      return;
+    }
+    const records = await fetchFeatureTestRuns(selectedFeatureId);
+    setRuns(records);
+    setActiveRunId((previous) => {
+      if (previous && records.some((item) => item.id === previous)) return previous;
+      return records[0]?.id ?? "";
+    });
+  }
+
+  async function loadRunResults(runId: string) {
+    if (!runId) {
+      setResultsByTestCaseId({});
+      return;
+    }
+    const records = await fetchTestRunResults(runId);
+    const mapped: Record<string, TestRunResultRecord> = {};
+    for (const row of records) mapped[row.testCaseId] = row;
+    setResultsByTestCaseId(mapped);
+  }
+
   useEffect(() => {
     setLoading(true);
     loadFeatures()
@@ -189,12 +251,34 @@ export function TestCasesPage() {
   useEffect(() => {
     if (!featureId) return;
     setLoading(true);
-    loadTestCases(featureId)
-      .catch(() => showToast({ variant: "error", title: "Failed to load test cases" }))
+    Promise.all([loadTestCases(featureId), loadRuns(featureId)])
+      .catch(() => showToast({ variant: "error", title: "Failed to load test cases/test runs" }))
       .finally(() => setLoading(false));
   }, [featureId, typeFilter, priorityFilter, automatableFilter, debouncedSearch]);
 
+  useEffect(() => {
+    loadRunResults(activeRunId).catch(() => {
+      showToast({ variant: "error", title: "Failed to load test run results" });
+    });
+  }, [activeRunId]);
+
   const selectedFeature = useMemo(() => features.find((item) => item.id === featureId) ?? null, [features, featureId]);
+  const activeRun = useMemo(() => runs.find((item) => item.id === activeRunId) ?? null, [runs, activeRunId]);
+  const runSummary = useMemo(
+    () =>
+      activeRun?.summary ?? {
+        total: rows.length,
+        pass: 0,
+        fail: 0,
+        blocked: 0,
+        notRun: rows.length
+      },
+    [activeRun, rows.length]
+  );
+
+  useEffect(() => {
+    setRunForm(defaultRunForm(selectedFeature?.name ?? ""));
+  }, [selectedFeature?.id]);
 
   const openCreate = () => {
     setEditor(toEditorState());
@@ -285,6 +369,63 @@ export function TestCasesPage() {
     }
   }
 
+  async function handleCreateRun() {
+    if (!featureId || !runForm.name.trim()) {
+      showToast({ variant: "error", title: "Run name is required" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const created = await createFeatureTestRun(featureId, runForm);
+      const refreshed = await fetchFeatureTestRuns(featureId);
+      setRuns(refreshed);
+      setActiveRunId(created.id);
+      setIsRunModalOpen(false);
+      showToast({ variant: "success", title: "Test run created" });
+    } catch (error) {
+      showToast({ variant: "error", title: "Failed to create test run", message: error instanceof Error ? error.message : undefined });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCompleteRun() {
+    if (!activeRunId) return;
+    setSaving(true);
+    try {
+      const updated = await updateTestRun(activeRunId, { status: "Completed", completedAt: new Date().toISOString() });
+      setRuns((current) => current.map((run) => (run.id === updated.id ? updated : run)));
+      showToast({ variant: "success", title: "Test run marked completed" });
+    } catch (error) {
+      showToast({ variant: "error", title: "Failed to complete run", message: error instanceof Error ? error.message : undefined });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveResult() {
+    if (!activeRunId || !resultEditor) return;
+    setSaving(true);
+    try {
+      const saved = await upsertTestRunResult(activeRunId, resultEditor.testCaseId, {
+        status: resultEditor.status,
+        testedBy: resultEditor.testedBy,
+        notes: resultEditor.notes,
+        defectLink: resultEditor.defectLink,
+        executedAt: new Date().toISOString()
+      });
+      setResultsByTestCaseId((current) => ({ ...current, [saved.testCaseId]: saved }));
+      const refreshedRuns = await fetchFeatureTestRuns(featureId);
+      setRuns(refreshedRuns);
+      setResultEditor(null);
+      showToast({ variant: "success", title: "Result recorded" });
+    } catch (error) {
+      showToast({ variant: "error", title: "Failed to save result", message: error instanceof Error ? error.message : undefined });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <AdminShell>
       <div className="flex min-h-full flex-1 flex-col bg-white p-4 shadow-[0_10px_20px_rgba(148,163,184,0.2)]">
@@ -303,6 +444,12 @@ export function TestCasesPage() {
             </Button>
             <Button variant="primary" onClick={openCreate} disabled={!featureId}>
               Add Test Case
+            </Button>
+            <Button variant="primary" onClick={() => setIsRunModalOpen(true)} disabled={!featureId}>
+              Start Test Run
+            </Button>
+            <Button variant="secondary" onClick={handleCompleteRun} disabled={!activeRunId || activeRun?.status === "Completed"}>
+              Complete Run
             </Button>
           </div>
         </div>
@@ -379,6 +526,29 @@ export function TestCasesPage() {
             />
           </div>
 
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <FormSelectField
+              label="Active Test Run"
+              value={activeRunId}
+              onChange={(event) => setActiveRunId(event.target.value)}
+              options={[
+                { label: "Select test run", value: "" },
+                ...runs.map((run) => ({
+                  label: `${run.name} (${run.status === "Completed" ? "Completed" : "In Progress"})`,
+                  value: run.id
+                }))
+              ]}
+            />
+            <div className="rounded-md border border-[#dbe3ea] bg-[#f8fafc] p-3 text-sm text-[#334155]">
+              <p className="font-semibold">Run Summary</p>
+              <p>Total: {runSummary.total}</p>
+              <p>Pass: {runSummary.pass}</p>
+              <p>Fail: {runSummary.fail}</p>
+              <p>Blocked: {runSummary.blocked}</p>
+              <p>Not Run: {runSummary.notRun}</p>
+            </div>
+          </div>
+
           <div className="mt-4">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#64748b]">Disable Generator Bundles</p>
             <div className="flex flex-wrap gap-3">
@@ -413,13 +583,14 @@ export function TestCasesPage() {
                   <th className="px-3 py-2">Priority</th>
                   <th className="px-3 py-2">Automatable</th>
                   <th className="px-3 py-2">Tags</th>
+                  <th className="px-3 py-2">Run Status</th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {!loading && rows.length === 0 ? (
                   <tr>
-                    <td className="px-3 py-6 text-center text-[#64748b]" colSpan={6}>
+                    <td className="px-3 py-6 text-center text-[#64748b]" colSpan={7}>
                       No test cases found.
                     </td>
                   </tr>
@@ -432,9 +603,38 @@ export function TestCasesPage() {
                     <td className="px-3 py-2">{row.isAutomatable ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">{row.tags.join(", ")}</td>
                     <td className="px-3 py-2">
+                      {resultsByTestCaseId[row.id]?.status ?? "NotRun"}
+                      {resultsByTestCaseId[row.id]?.defectLink ? (
+                        <a
+                          href={resultsByTestCaseId[row.id].defectLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="ml-2 text-xs text-[#1595d4] underline"
+                        >
+                          Defect
+                        </a>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2">
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm" onClick={() => openEdit(row)}>
                           Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setResultEditor({
+                              testCaseId: row.id,
+                              status: resultsByTestCaseId[row.id]?.status ?? "NotRun",
+                              testedBy: resultsByTestCaseId[row.id]?.testedBy ?? activeRun?.tester ?? "",
+                              notes: resultsByTestCaseId[row.id]?.notes ?? "",
+                              defectLink: resultsByTestCaseId[row.id]?.defectLink ?? ""
+                            })
+                          }
+                          disabled={!activeRunId || activeRun?.status === "Completed"}
+                        >
+                          Record Result
                         </Button>
                         <Button variant="ghost" size="sm" tone="danger" onClick={() => handleDeleteTestCase(row)}>
                           Delete
@@ -547,6 +747,70 @@ export function TestCasesPage() {
           </Button>
           <Button variant="primary" onClick={handleSaveTestCase} disabled={!canSaveEditor} state={saving ? "loading" : "default"}>
             Save
+          </Button>
+        </div>
+      </ModalShell>
+
+      <ModalShell open={isRunModalOpen} onClose={() => setIsRunModalOpen(false)} title="Start Test Run">
+        <div className="grid gap-3">
+          <FormInputField
+            label="Run Name"
+            value={runForm.name}
+            onChange={(value) => setRunForm((state) => ({ ...state, name: value }))}
+          />
+          <FormInputField
+            label="Tester"
+            value={runForm.tester}
+            onChange={(value) => setRunForm((state) => ({ ...state, tester: value }))}
+          />
+          <FormInputField
+            label="Notes"
+            value={runForm.notes}
+            onChange={(value) => setRunForm((state) => ({ ...state, notes: value }))}
+          />
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setIsRunModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleCreateRun} state={saving ? "loading" : "default"}>
+            Start Run
+          </Button>
+        </div>
+      </ModalShell>
+
+      <ModalShell open={Boolean(resultEditor)} onClose={() => setResultEditor(null)} title="Record Test Result">
+        <div className="grid gap-3">
+          <FormSelectField
+            label="Status"
+            value={resultEditor?.status ?? "NotRun"}
+            onChange={(event) =>
+              setResultEditor((state) => (state ? { ...state, status: event.target.value as TestExecutionStatus } : state))
+            }
+            options={EXECUTION_STATUSES.map((value) => ({ label: value, value }))}
+          />
+          <FormInputField
+            label="Tester"
+            value={resultEditor?.testedBy ?? ""}
+            onChange={(value) => setResultEditor((state) => (state ? { ...state, testedBy: value } : state))}
+          />
+          <FormInputField
+            label="Defect Link"
+            value={resultEditor?.defectLink ?? ""}
+            onChange={(value) => setResultEditor((state) => (state ? { ...state, defectLink: value } : state))}
+          />
+          <FormInputField
+            label="Notes"
+            value={resultEditor?.notes ?? ""}
+            onChange={(value) => setResultEditor((state) => (state ? { ...state, notes: value } : state))}
+          />
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setResultEditor(null)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSaveResult} disabled={!activeRunId} state={saving ? "loading" : "default"}>
+            Save Result
           </Button>
         </div>
       </ModalShell>

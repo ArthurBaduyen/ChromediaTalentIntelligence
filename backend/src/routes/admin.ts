@@ -199,6 +199,37 @@ const testCaseCreateSchema = z
 
 const testCaseUpdateSchema = testCaseCreateSchema.partial();
 
+const testRunStatusSchema = z.enum(["InProgress", "Completed"]);
+const testExecutionStatusSchema = z.enum(["NotRun", "Pass", "Fail", "Blocked"]);
+
+const testRunCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    tester: z.string().optional().default(""),
+    notes: z.string().optional().default("")
+  })
+  .strict();
+
+const testRunUpdateSchema = z
+  .object({
+    name: z.string().optional(),
+    tester: z.string().optional(),
+    notes: z.string().optional(),
+    status: testRunStatusSchema.optional(),
+    completedAt: z.string().optional()
+  })
+  .strict();
+
+const testRunResultUpsertSchema = z
+  .object({
+    status: testExecutionStatusSchema,
+    testedBy: z.string().optional().default(""),
+    notes: z.string().optional().default(""),
+    defectLink: z.string().optional().default(""),
+    executedAt: z.string().optional()
+  })
+  .strict();
+
 const featureCreateSchema = z
   .object({
     name: z.string().min(1),
@@ -428,6 +459,94 @@ router.delete("/test-cases/:id", requireAuth, requireRole(AppRole.super_admin, A
   }
   res.json(await repositories.testCases.delete(id));
 });
+
+router.get("/features/:id/test-runs", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
+  const featureId = paramValue(req.params.id);
+  const feature = await repositories.features.findById(featureId);
+  if (!feature) {
+    res.status(404).json({ message: "Feature not found" });
+    return;
+  }
+  res.json(await repositories.testRuns.listByFeature(featureId));
+});
+
+router.post(
+  "/features/:id/test-runs",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testRunCreateSchema),
+  async (req, res) => {
+    const featureId = paramValue(req.params.id);
+    const feature = await repositories.features.findById(featureId);
+    if (!feature) {
+      res.status(404).json({ message: "Feature not found" });
+      return;
+    }
+    const payload = req.body as z.infer<typeof testRunCreateSchema>;
+    const created = await repositories.testRuns.create({ featureId, ...payload });
+    res.status(201).json(created);
+  }
+);
+
+router.put(
+  "/test-runs/:id",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testRunUpdateSchema),
+  async (req, res) => {
+    const runId = paramValue(req.params.id);
+    const payload = req.body as z.infer<typeof testRunUpdateSchema>;
+    const updated = await repositories.testRuns.update(runId, payload);
+    if (!updated) {
+      res.status(404).json({ message: "Test run not found" });
+      return;
+    }
+    res.json(updated);
+  }
+);
+
+router.get("/test-runs/:id/results", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
+  const runId = paramValue(req.params.id);
+  const run = await repositories.testRuns.findRunById(runId);
+  if (!run) {
+    res.status(404).json({ message: "Test run not found" });
+    return;
+  }
+  res.json(await repositories.testRuns.listResults(runId));
+});
+
+router.put(
+  "/test-runs/:id/results/:testCaseId",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testRunResultUpsertSchema),
+  async (req, res) => {
+    const runId = paramValue(req.params.id);
+    const testCaseId = paramValue(req.params.testCaseId);
+    const run = await repositories.testRuns.findRunById(runId);
+    if (!run) {
+      res.status(404).json({ message: "Test run not found" });
+      return;
+    }
+    const testCase = await repositories.testCases.findById(testCaseId);
+    if (!testCase || testCase.featureId !== run.featureId) {
+      res.status(404).json({ message: "Test case not found for this run" });
+      return;
+    }
+
+    const payload = req.body as z.infer<typeof testRunResultUpsertSchema>;
+    const result = await repositories.testRuns.upsertResult(runId, testCaseId, {
+      runId,
+      testCaseId,
+      status: payload.status,
+      testedBy: payload.testedBy,
+      notes: payload.notes,
+      defectLink: payload.defectLink,
+      executedAt: payload.executedAt ?? new Date().toISOString()
+    });
+    res.json(result);
+  }
+);
 
 async function handleGenerateTestCases(
   featureId: string,

@@ -273,6 +273,11 @@ The app uses the Express backend (`backend/src/server.ts`) as the API server.
 | DELETE | `/api/test-cases/:id` | Admin | Delete a test case |
 | POST | `/api/features/:id/test-cases:generate` | Admin | Generate deterministic baseline test cases (preview or persist) |
 | POST | `/api/features/:id/test-cases/generate` | Admin | Alias of the generate endpoint above |
+| GET | `/api/features/:id/test-runs` | Admin | List test runs with pass/fail/blocked/not-run summary |
+| POST | `/api/features/:id/test-runs` | Admin | Start a test run |
+| PUT | `/api/test-runs/:id` | Admin | Update/complete a test run |
+| GET | `/api/test-runs/:id/results` | Admin | List recorded results for a run |
+| PUT | `/api/test-runs/:id/results/:testCaseId` | Admin | Record or update pass/fail/blocked/not-run result for a test case |
 
 ### Shared Profiles
 

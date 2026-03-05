@@ -39,6 +39,18 @@ enum TestCaseType {
   Performance
 }
 
+enum TestRunStatus {
+  InProgress
+  Completed
+}
+
+enum TestExecutionStatus {
+  NotRun
+  Pass
+  Fail
+  Blocked
+}
+
 enum AuditEntityType {
   candidate
   skills
@@ -325,6 +337,7 @@ model Feature {
   createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   testCases         TestCase[]
+  testRuns          TestRun[]
 
   @@index([name])
   @@map("features")
@@ -347,10 +360,52 @@ model TestCase {
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
   feature         Feature          @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  runResults      TestRunResult[]
 
   @@index([featureId])
   @@index([priority])
   @@index([type])
   @@index([isAutomatable])
   @@map("test_cases")
+}
+
+model TestRun {
+  id          String          @id @default(uuid()) @db.Uuid
+  featureId   String          @map("feature_id") @db.Uuid
+  name        String
+  tester      String?
+  notes       String?
+  status      TestRunStatus   @default(InProgress)
+  startedAt   DateTime        @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime?       @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  feature     Feature         @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  results     TestRunResult[]
+
+  @@index([featureId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("test_runs")
+}
+
+model TestRunResult {
+  id          String              @id @default(uuid()) @db.Uuid
+  runId       String              @map("run_id") @db.Uuid
+  testCaseId  String              @map("test_case_id") @db.Uuid
+  status      TestExecutionStatus @default(NotRun)
+  testedBy    String?             @map("tested_by")
+  notes       String?
+  defectLink  String?             @map("defect_link")
+  executedAt  DateTime?           @map("executed_at") @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  run         TestRun             @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testCase    TestCase            @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, testCaseId])
+  @@index([runId])
+  @@index([testCaseId])
+  @@index([status])
+  @@map("test_run_results")
 }

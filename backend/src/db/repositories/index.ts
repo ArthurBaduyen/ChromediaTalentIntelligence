@@ -7,6 +7,7 @@ import { UserRepository } from "./UserRepository";
 import { CandidateInviteLinkRepository } from "./CandidateInviteLinkRepository";
 import { FeatureRepository } from "./FeatureRepository";
 import { TestCaseRepository } from "./TestCaseRepository";
+import { TestRunRepository } from "./TestRunRepository";
 
 export const repositories = {
   candidates: new CandidateRepository(),
@@ -17,5 +18,6 @@ export const repositories = {
   users: new UserRepository(),
   candidateInviteLinks: new CandidateInviteLinkRepository(),
   features: new FeatureRepository(),
-  testCases: new TestCaseRepository()
+  testCases: new TestCaseRepository(),
+  testRuns: new TestRunRepository()
 };

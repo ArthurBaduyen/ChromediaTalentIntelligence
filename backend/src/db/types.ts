@@ -192,6 +192,61 @@ export type TestCaseFilters = {
   search: string;
 };
 
+export type TestRunStatus = "InProgress" | "Completed";
+export type TestExecutionStatus = "NotRun" | "Pass" | "Fail" | "Blocked";
+
+export type TestRunSummary = {
+  total: number;
+  pass: number;
+  fail: number;
+  blocked: number;
+  notRun: number;
+};
+
+export type TestRunRecord = {
+  id: string;
+  featureId: string;
+  name: string;
+  tester: string;
+  notes: string;
+  status: TestRunStatus;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  summary: TestRunSummary;
+};
+
+export type CreateTestRunInput = {
+  featureId: string;
+  name: string;
+  tester?: string;
+  notes?: string;
+};
+
+export type UpdateTestRunInput = Partial<{
+  name: string;
+  tester: string;
+  notes: string;
+  status: TestRunStatus;
+  completedAt: string;
+}>;
+
+export type TestRunResultRecord = {
+  id: string;
+  runId: string;
+  testCaseId: string;
+  status: TestExecutionStatus;
+  testedBy: string;
+  notes: string;
+  defectLink: string;
+  executedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type UpsertTestRunResultInput = Omit<TestRunResultRecord, "id" | "createdAt" | "updatedAt">;
+
 export type DemoUser = {
   role: "super_admin" | "admin" | "candidate" | "client";
   email: string;

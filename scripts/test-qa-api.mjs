@@ -179,6 +179,79 @@ async function runTests() {
   assert.equal(deleteRes.response.status, 200, "Expected delete test-case endpoint to succeed");
   assert.equal(deleteRes.body?.deleted, true, "Expected deleted flag");
 
+  const createRunRes = await request(
+    `/api/features/${encodeURIComponent(featureId)}/test-runs`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-csrf-token": csrf },
+      body: JSON.stringify({ name: "Sprint 1 QA Run", tester: "QA User", notes: "Smoke + functional" })
+    },
+    jar
+  );
+  assert.equal(createRunRes.response.status, 201, "Expected test-run create endpoint to succeed");
+  const runId = createRunRes.body.id;
+
+  const runListRes = await request(`/api/features/${encodeURIComponent(featureId)}/test-runs`, {}, jar);
+  assert.equal(runListRes.response.status, 200, "Expected test-run list endpoint to succeed");
+  assert.ok(Array.isArray(runListRes.body) && runListRes.body.length >= 1, "Expected at least one run");
+
+  const testCaseForResultRes = await request(
+    `/api/features/${encodeURIComponent(featureId)}/test-cases`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-csrf-token": csrf },
+      body: JSON.stringify({
+        title: "Smoke: record result",
+        preconditions: "Admin logged in",
+        testData: {},
+        steps: ["Open feature"],
+        expectedResults: ["Feature works"],
+        postConditions: "No side effects",
+        priority: "P0",
+        type: "Smoke",
+        isAutomatable: true,
+        automationNotes: "",
+        tags: ["smoke"]
+      })
+    },
+    jar
+  );
+  assert.equal(testCaseForResultRes.response.status, 201, "Expected setup test-case create");
+  const resultCaseId = testCaseForResultRes.body.id;
+
+  const saveResultRes = await request(
+    `/api/test-runs/${encodeURIComponent(runId)}/results/${encodeURIComponent(resultCaseId)}`,
+    {
+      method: "PUT",
+      headers: { "content-type": "application/json", "x-csrf-token": csrf },
+      body: JSON.stringify({
+        status: "Fail",
+        testedBy: "QA User",
+        notes: "Observed bug on submit",
+        defectLink: "https://tracker.local/BUG-123"
+      })
+    },
+    jar
+  );
+  assert.equal(saveResultRes.response.status, 200, "Expected save test-run result endpoint to succeed");
+  assert.equal(saveResultRes.body.status, "Fail", "Expected saved fail result");
+
+  const resultListRes = await request(`/api/test-runs/${encodeURIComponent(runId)}/results`, {}, jar);
+  assert.equal(resultListRes.response.status, 200, "Expected test-run result list endpoint to succeed");
+  assert.ok(Array.isArray(resultListRes.body) && resultListRes.body.length >= 1, "Expected run results");
+
+  const completeRunRes = await request(
+    `/api/test-runs/${encodeURIComponent(runId)}`,
+    {
+      method: "PUT",
+      headers: { "content-type": "application/json", "x-csrf-token": csrf },
+      body: JSON.stringify({ status: "Completed", completedAt: new Date().toISOString() })
+    },
+    jar
+  );
+  assert.equal(completeRunRes.response.status, 200, "Expected test-run completion endpoint to succeed");
+  assert.equal(completeRunRes.body.status, "Completed", "Expected completed status");
+
   console.log("QA API integration tests passed.");
 }
 

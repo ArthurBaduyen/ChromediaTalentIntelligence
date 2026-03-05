@@ -4,7 +4,15 @@ import { z } from "zod";
 import { repositories } from "../db/repositories";
 import { validateBody } from "../middleware/validate";
 import { requireAuth, requireRole } from "../middleware/auth";
-import type { AuditLogRecord, CandidateRecord, SharedProfileRecord, SkillsState } from "../db/types";
+import { generateBaselineTestCases } from "../services/testCaseGenerator";
+import type {
+  AuditLogRecord,
+  CandidateRecord,
+  SharedProfileRecord,
+  SkillsState,
+  TestCasePriority,
+  TestCaseType
+} from "../db/types";
 
 const router = Router();
 
@@ -170,6 +178,56 @@ const candidateInviteCreateSchema = z
   })
   .strict();
 
+const testCasePrioritySchema = z.enum(["P0", "P1", "P2"]);
+const testCaseTypeSchema = z.enum(["Smoke", "Functional", "Negative", "Regression", "API", "Integration", "UI", "Security", "Performance"]);
+
+const testCaseCreateSchema = z
+  .object({
+    title: z.string().min(1),
+    preconditions: z.string().optional().default(""),
+    testData: z.unknown().optional(),
+    steps: z.array(z.string().min(1)).min(1),
+    expectedResults: z.array(z.string().min(1)).min(1),
+    postConditions: z.string().optional().default(""),
+    priority: testCasePrioritySchema,
+    type: testCaseTypeSchema,
+    isAutomatable: z.boolean(),
+    automationNotes: z.string().optional().default(""),
+    tags: z.array(z.string()).optional().default([])
+  })
+  .strict();
+
+const testCaseUpdateSchema = testCaseCreateSchema.partial();
+
+const featureCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    description: z.string().optional().default(""),
+    rolesInvolved: z.array(z.string()).optional().default([]),
+    platforms: z.array(z.string()).optional().default([]),
+    browsersOrDevices: z.array(z.string()).optional().default([]),
+    hasApi: z.boolean().optional().default(false)
+  })
+  .strict();
+
+const testCaseGenerateSchema = z
+  .object({
+    featureName: z.string().optional(),
+    description: z.string().optional(),
+    userRolesInvolved: z.array(z.string()).optional(),
+    platforms: z.array(z.string()).optional(),
+    browsersOrDevices: z.array(z.string()).optional(),
+    hasApi: z.boolean().optional(),
+    disableBundles: z
+      .array(z.enum(["smoke", "functional", "negative", "permissions", "api", "integration", "compatibility", "performance", "security", "regression"]))
+      .optional(),
+    selectedBundles: z
+      .array(z.enum(["smoke", "functional", "negative", "permissions", "api", "integration", "compatibility", "performance", "security", "regression"]))
+      .optional(),
+    persist: z.boolean().optional().default(false)
+  })
+  .strict();
+
 function paramValue(value: unknown) {
   if (Array.isArray(value)) return String(value[0] ?? "");
   return String(value ?? "");
@@ -181,6 +239,15 @@ function parsePagination(query: Record<string, unknown>) {
   const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   const pageSize = Number.isFinite(rawPageSize) && rawPageSize > 0 ? Math.min(100, Math.floor(rawPageSize)) : 12;
   return { page, pageSize };
+}
+
+function parseBoolean(value: unknown): boolean | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "boolean") return value;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "true" || normalized === "1" || normalized === "yes") return true;
+  if (normalized === "false" || normalized === "0" || normalized === "no") return false;
+  return undefined;
 }
 
 function paginate<T>(items: T[], page: number, pageSize: number) {
@@ -263,6 +330,155 @@ router.post(
     } catch (error) {
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create candidate link" });
     }
+  }
+);
+
+router.get("/features", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (_req, res) => {
+  res.json(await repositories.features.list());
+});
+
+router.post(
+  "/features",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(featureCreateSchema),
+  async (req, res) => {
+    const payload = req.body as z.infer<typeof featureCreateSchema>;
+    const feature = await repositories.features.create(payload);
+    res.status(201).json(feature);
+  }
+);
+
+router.get("/features/:id/test-cases", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
+  const featureId = paramValue(req.params.id);
+  const feature = await repositories.features.findById(featureId);
+  if (!feature) {
+    res.status(404).json({ message: "Feature not found" });
+    return;
+  }
+
+  const rawType = String(req.query.type ?? "").trim();
+  const rawPriority = String(req.query.priority ?? "").trim();
+  const type = testCaseTypeSchema.options.includes(rawType as TestCaseType) ? (rawType as TestCaseType) : undefined;
+  const priority = testCasePrioritySchema.options.includes(rawPriority as TestCasePriority)
+    ? (rawPriority as TestCasePriority)
+    : undefined;
+  const isAutomatable = parseBoolean(req.query.isAutomatable);
+  const search = String(req.query.q ?? "").trim();
+
+  const rows = await repositories.testCases.listByFeature(featureId, { type, priority, isAutomatable, search });
+  res.json(rows);
+});
+
+router.post(
+  "/features/:id/test-cases",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testCaseCreateSchema),
+  async (req, res) => {
+    const featureId = paramValue(req.params.id);
+    const feature = await repositories.features.findById(featureId);
+    if (!feature) {
+      res.status(404).json({ message: "Feature not found" });
+      return;
+    }
+    const payload = req.body as z.infer<typeof testCaseCreateSchema>;
+    const created = await repositories.testCases.create({
+      featureId,
+      title: payload.title,
+      preconditions: payload.preconditions,
+      testData: payload.testData,
+      steps: payload.steps,
+      expectedResults: payload.expectedResults,
+      postConditions: payload.postConditions,
+      priority: payload.priority,
+      type: payload.type,
+      isAutomatable: payload.isAutomatable,
+      automationNotes: payload.automationNotes,
+      tags: payload.tags
+    });
+    res.status(201).json(created);
+  }
+);
+
+router.put(
+  "/test-cases/:id",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testCaseUpdateSchema),
+  async (req, res) => {
+    const id = paramValue(req.params.id);
+    const existing = await repositories.testCases.findById(id);
+    if (!existing) {
+      res.status(404).json({ message: "Test case not found" });
+      return;
+    }
+    const payload = req.body as z.infer<typeof testCaseUpdateSchema>;
+    const updated = await repositories.testCases.update(id, payload);
+    res.json(updated);
+  }
+);
+
+router.delete("/test-cases/:id", requireAuth, requireRole(AppRole.super_admin, AppRole.admin), async (req, res) => {
+  const id = paramValue(req.params.id);
+  const existing = await repositories.testCases.findById(id);
+  if (!existing) {
+    res.status(404).json({ message: "Test case not found" });
+    return;
+  }
+  res.json(await repositories.testCases.delete(id));
+});
+
+async function handleGenerateTestCases(
+  featureId: string,
+  body: z.infer<typeof testCaseGenerateSchema>,
+  res: import("express").Response
+) {
+  const feature = await repositories.features.findById(featureId);
+  if (!feature) {
+    res.status(404).json({ message: "Feature not found" });
+    return;
+  }
+
+  const generated = generateBaselineTestCases({
+    featureId: feature.id,
+    featureName: body.featureName?.trim() || feature.name,
+    description: body.description?.trim() || feature.description,
+    roles: body.userRolesInvolved ?? feature.rolesInvolved,
+    platforms: body.platforms ?? feature.platforms,
+    browsersOrDevices: body.browsersOrDevices ?? feature.browsersOrDevices,
+    hasApi: body.hasApi ?? feature.hasApi,
+    disabledBundles: body.disableBundles,
+    selectedBundles: body.selectedBundles
+  });
+
+  if (!body.persist) {
+    res.json({ featureId: feature.id, generated });
+    return;
+  }
+
+  const saved = await repositories.testCases.createMany(generated);
+  res.status(201).json({ featureId: feature.id, generated: saved });
+}
+
+router.post(
+  "/features/:id/test-cases/generate",
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testCaseGenerateSchema),
+  async (req, res) => {
+    await handleGenerateTestCases(paramValue(req.params.id), req.body as z.infer<typeof testCaseGenerateSchema>, res);
+  }
+);
+
+router.post(
+  /^\/features\/([^/]+)\/test-cases:generate$/,
+  requireAuth,
+  requireRole(AppRole.super_admin, AppRole.admin),
+  validateBody(testCaseGenerateSchema),
+  async (req, res) => {
+    const featureId = paramValue((req.params as Record<string, unknown>)[0]);
+    await handleGenerateTestCases(featureId, req.body as z.infer<typeof testCaseGenerateSchema>, res);
   }
 );
 

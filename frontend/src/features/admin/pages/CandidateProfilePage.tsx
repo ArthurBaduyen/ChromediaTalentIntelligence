@@ -1240,18 +1240,6 @@ export function CandidateProfilePage() {
               </div>
             ) : null}
           </div>
-          {!isSharedView ? (
-            <div className="flex justify-end px-8 pb-4">
-              <Button
-                variant="primary"
-                className="h-9 min-w-fit whitespace-nowrap px-4 text-sm"
-                onClick={() => setIsShareProfileModalOpen(true)}
-              >
-                Share to client
-              </Button>
-            </div>
-          ) : null}
-
           <div className="rounded-[4px] bg-white px-8 pb-8 pt-8">
             <header>
               <div className="mt-8 flex items-center gap-4 border-b border-[#d1d1d1] pb-8">
@@ -1282,14 +1270,26 @@ export function CandidateProfilePage() {
                   <p className="text-[20px] font-semibold leading-[30px] text-[#242424]">{candidate?.expectedSalary ?? "$4,556/month"}</p>
                   <p className="text-sm leading-5">{availabilityText}</p>
                   <p className="text-xs italic leading-[18px]">Rate guaranteed until [date].</p>
-                  <div className="mt-1 flex gap-1">
-                    <Button variant="primary" className="h-7 min-w-fit shrink-0 whitespace-nowrap px-5 text-sm font-normal leading-5">
-                      Email Ryan
-                    </Button>
-                    <Button variant="primary" className="h-7 min-w-fit shrink-0 whitespace-nowrap px-5 text-sm font-normal leading-5">
-                      Schedule a meeting
-                    </Button>
-                  </div>
+                  {isSharedView ? (
+                    <div className="mt-1 flex gap-1">
+                      <Button variant="primary" className="h-7 min-w-fit shrink-0 whitespace-nowrap px-5 text-sm font-normal leading-5">
+                        Email Ryan
+                      </Button>
+                      <Button variant="primary" className="h-7 min-w-fit shrink-0 whitespace-nowrap px-5 text-sm font-normal leading-5">
+                        Schedule a meeting
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex gap-1">
+                      <Button
+                        variant="primary"
+                        className="h-7 min-w-fit shrink-0 whitespace-nowrap px-5 text-sm font-normal leading-5"
+                        onClick={() => setIsShareProfileModalOpen(true)}
+                      >
+                        Share to client
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </header>

@@ -69,6 +69,12 @@ export function AdminShell({ children, hideSidebar = false }: AdminShellProps) {
       active: location.pathname.startsWith(APP_ROUTES.admin.sharedProfiles),
       to: APP_ROUTES.admin.sharedProfiles
     },
+    {
+      label: "QA Test Cases",
+      icon: <AuditIcon className="h-5 w-5" />,
+      active: location.pathname.startsWith(APP_ROUTES.admin.testCases),
+      to: APP_ROUTES.admin.testCases
+    },
     ...(role === "super_admin"
       ? [
           {
@@ -113,7 +119,7 @@ export function AdminShell({ children, hideSidebar = false }: AdminShellProps) {
   }
 
   return (
-    <div className="grid h-screen min-w-[1280px] grid-cols-[200px_1fr] overflow-hidden bg-[var(--color-bg-app,#f1f5f9)]">
+    <div className="grid h-screen min-w-[1280px] grid-cols-[230px_1fr] overflow-hidden bg-[var(--color-bg-app,#f1f5f9)]">
       <Sidebar topItems={topItems} bottomItems={resolvedBottomItems} logo={<BrandLogo />} />
       <section className="min-h-0 overflow-y-auto">{children}</section>
     </div>

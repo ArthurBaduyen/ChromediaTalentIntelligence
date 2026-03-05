@@ -8,6 +8,7 @@ import { AuditLogsPage } from "../features/admin/pages/AuditLogsPage";
 import { SettingsPage } from "../features/admin/pages/SettingsPage";
 import { SkillsPage } from "../features/admin/pages/SkillsPage";
 import { SharedProfilesPage } from "../features/admin/pages/SharedProfilesPage";
+import { TestCasesPage } from "../features/admin/pages/TestCasesPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { CandidateSkillFormPage } from "../features/candidate/pages/CandidateSkillFormPage";
 import { CandidateSkillStartPage } from "../features/candidate/pages/CandidateSkillStartPage";
@@ -84,6 +85,14 @@ export function App() {
         element={
           <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
             <SkillsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={APP_ROUTES.admin.testCases}
+        element={
+          <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+            <TestCasesPage />
           </ProtectedRoute>
         }
       />

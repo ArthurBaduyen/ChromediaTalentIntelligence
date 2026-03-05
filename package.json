@@ -25,11 +25,13 @@
     "db:reseed-rich": "npm run db:generate-rich-dummy && npm run db:import -- --wipe && npm run db:verify",
     "migrate:skill-selections": "node scripts/migrate-skill-selection-capability-ids.mjs",
     "test:api": "node scripts/test-api-integration.mjs",
+    "test:qa-generator": "node --import tsx scripts/test-qa-generator.ts",
+    "test:qa-api": "node scripts/test-qa-api.mjs",
     "test:domain": "node scripts/test-candidate-profile-domain.mjs",
     "test": "npm run test:api",
     "test:share-links": "node scripts/test-share-link-lifecycle.mjs",
     "test:rbac-smoke": "node scripts/smoke-user-rbac.mjs",
-    "test:all": "npm run test:domain && npm run test:api && npm run test:share-links"
+    "test:all": "npm run test:domain && npm run test:api && npm run test:qa-generator && npm run test:qa-api && npm run test:share-links"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",

@@ -6,7 +6,8 @@ type UnknownObject = Record<string, unknown>;
 
 const rootDir = process.cwd();
 const dbDir = path.join(rootDir, "backend", "db");
-const sourcePath = path.join(dbDir, "candidates_updated.json");
+const fixedSourcePath = path.join(dbDir, "candidates_updated_skill_levels_fixed.json");
+const legacySourcePath = path.join(dbDir, "candidates_updated.json");
 const targetPath = path.join(dbDir, "candidates.json");
 
 const VALID_STATUSES: CandidateRecord["status"][] = ["Active", "Inactive", "Pending"];
@@ -222,6 +223,10 @@ function normalizeCandidate(value: unknown, index: number, ids: Set<string>): Ca
 }
 
 async function main() {
+  const sourcePath = await fs
+    .access(fixedSourcePath)
+    .then(() => fixedSourcePath)
+    .catch(() => legacySourcePath);
   const raw = await fs.readFile(sourcePath, "utf8");
   const parsed = JSON.parse(raw) as unknown;
   const list = Array.isArray(parsed) ? parsed : [];
@@ -231,7 +236,7 @@ async function main() {
     .filter((item): item is CandidateRecord => item !== null);
 
   await fs.writeFile(targetPath, `${JSON.stringify(candidates, null, 2)}\n`, "utf8");
-  console.log(`Updated ${path.relative(rootDir, targetPath)} from candidates_updated.json`);
+  console.log(`Updated ${path.relative(rootDir, targetPath)} from ${path.basename(sourcePath)}`);
   console.log(`- candidates: ${candidates.length}`);
 }
 
@@ -239,4 +244,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

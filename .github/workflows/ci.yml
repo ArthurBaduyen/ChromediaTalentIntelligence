@@ -11,6 +11,27 @@ jobs:
     name: Typecheck, Tests, Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: chromedia
+          POSTGRES_PASSWORD: chromedia
+          POSTGRES_DB: chromedia_talent_intelligence
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chromedia -d chromedia_talent_intelligence"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://chromedia:chromedia@127.0.0.1:5432/chromedia_talent_intelligence?schema=public
+      TOKEN_HASH_PEPPER: ci-token-hash-pepper-2026
+      ACCESS_TOKEN_SECRET: ci-access-token-secret-at-least-32-characters
+      REFRESH_TOKEN_SECRET: ci-refresh-token-secret-at-least-32-characters
+      DEMO_SUPER_ADMIN_PASSWORD: password123
+      DEMO_ADMIN_PASSWORD: password123
 
     steps:
       - name: Checkout
@@ -27,6 +48,12 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate --schema backend/prisma/schema.prisma
+
+      - name: Run database migrations
+        run: npm run db:migrate
+
+      - name: Import seed dataset
+        run: npm run db:import
 
       - name: Typecheck
         run: npm run typecheck

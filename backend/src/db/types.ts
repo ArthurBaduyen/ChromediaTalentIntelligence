@@ -136,6 +136,62 @@ export type AuditLogRecord = {
 
 export type CreateAuditLogInput = Omit<AuditLogRecord, "id" | "createdAt">;
 
+export type TestCasePriority = "P0" | "P1" | "P2";
+
+export type TestCaseType =
+  | "Smoke"
+  | "Functional"
+  | "Negative"
+  | "Regression"
+  | "API"
+  | "Integration"
+  | "UI"
+  | "Security"
+  | "Performance";
+
+export type FeatureRecord = {
+  id: string;
+  name: string;
+  description: string;
+  rolesInvolved: string[];
+  platforms: string[];
+  browsersOrDevices: string[];
+  hasApi: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateFeatureInput = Omit<FeatureRecord, "id" | "createdAt" | "updatedAt">;
+export type UpdateFeatureInput = Partial<CreateFeatureInput>;
+
+export type TestCaseRecord = {
+  id: string;
+  featureId: string;
+  title: string;
+  preconditions: string;
+  testData: unknown;
+  steps: string[];
+  expectedResults: string[];
+  postConditions: string;
+  priority: TestCasePriority;
+  type: TestCaseType;
+  isAutomatable: boolean;
+  automationNotes: string;
+  tags: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateTestCaseInput = Omit<TestCaseRecord, "id" | "createdAt" | "updatedAt">;
+export type UpdateTestCaseInput = Partial<Omit<TestCaseRecord, "id" | "featureId" | "createdAt" | "updatedAt">>;
+
+export type TestCaseFilters = {
+  type?: TestCaseType;
+  priority?: TestCasePriority;
+  isAutomatable?: boolean;
+  search: string;
+};
+
 export type DemoUser = {
   role: "super_admin" | "admin" | "candidate" | "client";
   email: string;

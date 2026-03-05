@@ -178,6 +178,8 @@ npm run build
 
 ```bash
 npm run test
+npm run test:qa-generator
+npm run test:qa-api
 npm run test:domain
 npm run test:share-links
 npm run test:all
@@ -207,6 +209,7 @@ Notes:
 | `/admin/dashboard` | Super Admin/Admin | Dashboard |
 | `/admin/candidates` | Super Admin/Admin | Candidates table |
 | `/admin/candidates/:candidateId` | Super Admin/Admin | Candidate profile editor |
+| `/admin/test-cases` | Super Admin/Admin | QA test cases management and baseline generation |
 | `/admin/skills` | Super Admin/Admin | Skills taxonomy management |
 | `/admin/shared-profiles` | Super Admin/Admin | Shared link management |
 | `/admin/audit-logs` | Super Admin | Audit logs |
@@ -257,6 +260,19 @@ The app uses the Express backend (`backend/src/server.ts`) as the API server.
 | GET | `/api/skills/query` | Authenticated | Paginated categories/skills view |
 | GET | `/api/skills` | Authenticated | Full skills state |
 | PUT | `/api/skills` | Admin | Update skills taxonomy |
+
+### QA Test Cases
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/api/features` | Admin | List QA features/stories |
+| POST | `/api/features` | Admin | Create QA feature/story |
+| GET | `/api/features/:id/test-cases` | Admin | List test cases for a feature with filters (`type`, `priority`, `isAutomatable`, `q`) |
+| POST | `/api/features/:id/test-cases` | Admin | Create a test case for a feature |
+| PUT | `/api/test-cases/:id` | Admin | Update a test case |
+| DELETE | `/api/test-cases/:id` | Admin | Delete a test case |
+| POST | `/api/features/:id/test-cases:generate` | Admin | Generate deterministic baseline test cases (preview or persist) |
+| POST | `/api/features/:id/test-cases/generate` | Admin | Alias of the generate endpoint above |
 
 ### Shared Profiles
 

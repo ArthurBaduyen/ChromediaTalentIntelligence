@@ -5,6 +5,8 @@ import { AuditLogRepository } from "./AuditLogRepository";
 import { AuthSessionRepository } from "./AuthSessionRepository";
 import { UserRepository } from "./UserRepository";
 import { CandidateInviteLinkRepository } from "./CandidateInviteLinkRepository";
+import { FeatureRepository } from "./FeatureRepository";
+import { TestCaseRepository } from "./TestCaseRepository";
 
 export const repositories = {
   candidates: new CandidateRepository(),
@@ -13,5 +15,7 @@ export const repositories = {
   auditLogs: new AuditLogRepository(),
   authSessions: new AuthSessionRepository(),
   users: new UserRepository(),
-  candidateInviteLinks: new CandidateInviteLinkRepository()
+  candidateInviteLinks: new CandidateInviteLinkRepository(),
+  features: new FeatureRepository(),
+  testCases: new TestCaseRepository()
 };

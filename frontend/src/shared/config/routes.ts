@@ -9,6 +9,7 @@ export const APP_ROUTES = {
     candidates: "/admin/candidates",
     candidateProfilePath: "/admin/candidates/:candidateId",
     candidateProfile: (candidateId: string) => `/admin/candidates/${encodeURIComponent(candidateId)}`,
+    testCases: "/admin/test-cases",
     skills: "/admin/skills",
     sharedProfiles: "/admin/shared-profiles",
     auditLogs: "/admin/audit-logs"

@@ -21,6 +21,24 @@ enum CandidateStatus {
   Pending
 }
 
+enum TestCasePriority {
+  P0
+  P1
+  P2
+}
+
+enum TestCaseType {
+  Smoke
+  Functional
+  Negative
+  Regression
+  API
+  Integration
+  UI
+  Security
+  Performance
+}
+
 enum AuditEntityType {
   candidate
   skills
@@ -294,4 +312,45 @@ model CandidateSkillSelection {
   @@index([candidateId])
   @@index([skillLegacyId])
   @@map("candidate_skill_selections")
+}
+
+model Feature {
+  id                String     @id @default(uuid()) @db.Uuid
+  name              String
+  description       String?
+  rolesInvolved     String[]   @default([]) @map("roles_involved")
+  platforms         String[]   @default([])
+  browsersOrDevices String[]   @default([]) @map("browsers_or_devices")
+  hasApi            Boolean    @default(false) @map("has_api")
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  testCases         TestCase[]
+
+  @@index([name])
+  @@map("features")
+}
+
+model TestCase {
+  id              String           @id @default(uuid()) @db.Uuid
+  featureId       String           @map("feature_id") @db.Uuid
+  title           String
+  preconditions   String?
+  testData        Json?            @map("test_data")
+  steps           String[]
+  expectedResults String[]         @map("expected_results")
+  postConditions  String?          @map("post_conditions")
+  priority        TestCasePriority
+  type            TestCaseType
+  isAutomatable   Boolean          @default(false) @map("is_automatable")
+  automationNotes String?          @map("automation_notes")
+  tags            String[]         @default([])
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  feature         Feature          @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
+  @@index([priority])
+  @@index([type])
+  @@index([isAutomatable])
+  @@map("test_cases")
 }
